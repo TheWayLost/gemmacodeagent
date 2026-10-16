@@ -3,7 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 export GEMMA_RUNTIME_PROFILE=4090-48g
 export GEMMA_EVAL_SLOTS="${CONCURRENCY:-1}"
-[[ "$GEMMA_EVAL_SLOTS" == 1 || "$GEMMA_EVAL_SLOTS" == 2 ]] || { echo 'CONCURRENCY must be 1 or 2'; exit 1; }
+[[ "$GEMMA_EVAL_SLOTS" =~ ^[1-4]$ ]] || { echo 'CONCURRENCY must be 1, 2, 3 or 4'; exit 1; }
 export ADP_CONCURRENCY="$GEMMA_EVAL_SLOTS"
 export HF_HOME="$PWD/cache/huggingface" XDG_CACHE_HOME="$PWD/cache" TMPDIR="$PWD/tmp"
 mkdir -p logs runs tmp cache

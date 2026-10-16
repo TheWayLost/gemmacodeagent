@@ -4,11 +4,40 @@ Kaggle 提交包：[artifacts/submission.zip](artifacts/submission.zip)。ZIP �
 
 **八路是外部评测调度，不打进 submission，也不能强制 Kaggle 评分器八路运行。** 每台 PRO 6000 独立加载模型、本地推理，无跨机器 SSH 推理隧道。
 
+## 必须先在目标 48GB RTX 4090 上运行 GPU 容量验收
+
+完成环境安装和模型下载后，先停止该卡上自己的 GPU 任务，再运行：
+
+```bash
+envs/eval/bin/python scripts/check_4090_capacity.py
+# 长时间运行也可以保留终端自动汇报：
+# envs/eval/bin/python -u scripts/check_4090_capacity.py 2>&1 | tee logs/4090-capacity.log
+```
+
+脚本要求实际48GB RTX4090，拒绝24GB卡、其他型号及已有明显显存占用的设备。测试服务默认使用8124端口；不会接管8000上的现有服务，也不会终止别人的GPU进程。需要单独指定设备时加 --gpu 0 或 GPU UUID。
+
+它依次启动1、2、3、4路配置，每档三轮，每个请求30,000输入tokens+2,048输出tokens，固定32k上下文。关闭prefix缓存并使用不同输入，防止共享KV缓存夸大容量；同时检查实际running请求数、完整生成、显存峰值、KV抢占、HTTP错误和OOM等启动/运行失败。某档失败后停止更高档测试。测试仅创建自己的独立服务和日志，结束后关闭自己启动的服务。
+
+**终端会自动打印每档PASS/FAIL，以及最高通过并发、实测吞吐最优的推荐并发和完整启动命令。** 结果保存在 runs/4090-capacity-时间戳/report.json 与 RECOMMENDATION.txt。无档位通过时明确提示不要启动评测。全套需处理最多61,440输出tokens并加载四次模型，可能需要数十分钟或更久；实际时间取决于该卡和磁盘。
+
+不需要下载不同的代码包：同一仓库和同一个 artifacts/submission.zip，使用报告推荐的 CONCURRENCY=1、2、3或4。例如报告推荐三路：
+
+```bash
+CONCURRENCY=3 bash scripts/run_4090_48g.sh model
+# 等待8000健康检查通过后，先做单题gold/empty/agent验证：
+CONCURRENCY=3 bash scripts/run_4090_48g.sh eval --cohort paired20 --shards 1 --shard 0 --ids requests_6644 --arms v5_6000 --run 4090-smoke-c3
+# 单题环境验证通过后，再跑20题：
+CONCURRENCY=3 bash scripts/run_4090_48g.sh eval --cohort paired20 --shards 1 --shard 0 --arms v5_6000 --run 4090-20-c3
+```
+
+先按原说明准备 paired20 数据。推荐仅适用于该次软件配置与测试负载，不是对所有未来任务的稳定性保证。脚本的长上下文测试不替代完整agent工具调用验收；它也不是4090已经测得能跑四路的声明。
+
+可选的纯CPU调度器自检：python3 scripts/check_concurrency.py（覆盖1/2/3/4/8路、容量冲突和异常退出恢复）。CPU门控自检不能用于推断GPU容量。--dry-run只打印GPU测试计划，不启动服务，也不产生容量认证。
+
 ## 三台 PRO 6000，各八路
 
  Linux x86_64、RTX PRO 6000 Blackwell 96GB、root、CUDA 12.8 兼容驱动、Python 3.12、git、chroot、setpriv。建议 22 CPU、110GB RAM、150GB 可用数据盘。模型约 23.3GB，安装缓存和沙箱需要额外空间。所有文件放数据盘。
 
-export HISTFILE=/dev/null
 
 ```bash
 cd /root/autodl-tmp
@@ -23,7 +52,6 @@ setup 下载官方 wheelhouse v31，安装版本锁，并校验六个核心包�
 
  Python 3.13 沙箱及各题离线 wheels 由 Release `calibration-v1.tar.gz` 提供，setup 自动下载、校验 SHA256、解压。附件不含模型、任务快照或令牌，保留第三方 metadata/license。AutoDL chroot 不等同完整 Docker 隔离，尤其没有宿主网络隔离；仅在可信独立评测机器运行。
 
-export HISTFILE=/dev/null
 
 ```bash
 read -rsp 'Kaggle API token: ' KAGGLE_API_TOKEN; echo
@@ -63,9 +91,7 @@ nohup env ADP_CONCURRENCY=8 envs/eval/bin/python src/benchmark.py \
 
 ## 调度、恢复与合并
 
-export HISTFILE=/dev/null
 - ThreadPool + FIRST_COMPLETED 滚动补位，完成一个立即补一个，末尾不足八题自然无法填满。
- patch 和测试 patch 不暴露给 agent。export HISTFILE=/dev/
 - 主机级 flock 八槽限制多个调度器总并发。默认 `/root/autodl-tmp/gemma-eval-slots`；修改 GEMMA_SLOT_DIR 时同机进程须一致。锁由内核释放，避免陈旧 PID。排队发生 agent 限时之前。
 - 每个 job 独立 chroot、日志、临时缓存，避免官方固定 sp_base.tar 并发覆盖。
 - 原命令可断点续跑；代码、任务、submission 改变会拒绝混合旧结果，应换新 --run。基础设施错误可修复后续跑；算法 是结果， timeout

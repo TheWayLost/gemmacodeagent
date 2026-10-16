@@ -1,0 +1,12 @@
+{
+  "real_4090_tested": false,
+  "synthetic_mock_only": true,
+  "tested": [
+    "metrics parsing",
+    "1/2/3/4 result aggregation",
+    "reject serial queue disguised as concurrency",
+    "reject KV preemption",
+    "4-way command generation with prefix cache disabled"
+  ],
+  "cpu_gate_report": "concurrency-gate-validation.json"
+}
