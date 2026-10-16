@@ -2,6 +2,14 @@ import os, json, subprocess
 from pathlib import Path
 from adk_submission import VllmConfig,VllmServer
 p=Path(__file__).resolve().parents[1]
+import socket
+with socket.socket() as probe:
+ if probe.connect_ex(('127.0.0.1',8000))==0:
+  raise SystemExit('Port 8000 is already occupied. Reuse or explicitly stop the existing model service.')
+for directory in ['runs','logs','tmp','cache']: (p/directory).mkdir(exist_ok=True)
+os.environ.setdefault('HF_HOME',str(p/'cache/huggingface'))
+os.environ.setdefault('XDG_CACHE_HOME',str(p/'cache'))
+os.environ.setdefault('TMPDIR',str(p/'tmp'))
 name="gemma-4-31b-it-qat-w4a16-ct"
 cfg=VllmConfig(model=str(p/"models"/name),host="127.0.0.1",port=8000,
 tool_call_parser="gemma4",reasoning_parser="gemma4",max_model_len=32768,

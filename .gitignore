@@ -13,3 +13,7 @@ wheelhouse/
 __pycache__/
 *.pyc
 *.tar*
+
+/data
+/sandbox
+/collected/
