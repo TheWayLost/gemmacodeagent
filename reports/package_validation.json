@@ -1,0 +1,29 @@
+{
+  "exact_submission_bytes": true,
+  "real_smoke_task": "requests_7309",
+  "results": {
+    "gold": {
+      "resolved": true,
+      "test_exit_code": 0,
+      "wall_seconds": 6.886831973679364,
+      "total_llm_calls": 0
+    },
+    "empty": {
+      "resolved": false,
+      "test_exit_code": 1,
+      "wall_seconds": 6.678134680725634,
+      "total_llm_calls": 0
+    },
+    "agent": {
+      "resolved": true,
+      "test_exit_code": 0,
+      "wall_seconds": 60.035062436014414,
+      "total_llm_calls": 12
+    }
+  },
+  "clean_machine_install_tested": false,
+  "slot_test_processes": 16,
+  "observed_peak_concurrency": 8,
+  "shard_coverage_3_and_4": true,
+  "credential_scan": "passed"
+}

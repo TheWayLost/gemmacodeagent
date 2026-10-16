@@ -1,0 +1,106 @@
+{
+  "tasks": [
+    "httpx_3672",
+    "requests_7205",
+    "fastapi_11355",
+    "fastapi_9425",
+    "fastapi_14458",
+    "fastapi_14873",
+    "fastapi_9753",
+    "rich_4076",
+    "rich_3882",
+    "fastapi_14463",
+    "fastapi_14266",
+    "fastapi_14448",
+    "requests_7427",
+    "rich_3953",
+    "fastapi_12942",
+    "fastapi_14479",
+    "rich_4079",
+    "rich_3506",
+    "requests_6644",
+    "rich_3043"
+  ],
+  "profiles": {
+    "httpx_3672": {
+      "wheels": "wheels_calibrated",
+      "image": "swebench-sandbox:calibrated-v1"
+    },
+    "requests_7205": {
+      "wheels": "wheels_calibrated",
+      "image": "swebench-sandbox:calibrated-v1"
+    },
+    "fastapi_11355": {
+      "wheels": "wheels_calibrated",
+      "image": "swebench-sandbox:calibrated-v1"
+    },
+    "fastapi_9425": {
+      "wheels": "wheels_calibrated",
+      "image": "swebench-sandbox:calibrated-v1"
+    },
+    "fastapi_14458": {
+      "wheels": "wheels_calibrated",
+      "image": "swebench-sandbox:calibrated-v1"
+    },
+    "fastapi_14873": {
+      "wheels": "wheels_calibrated",
+      "image": "swebench-sandbox:calibrated-v1"
+    },
+    "fastapi_9753": {
+      "wheels": "wheels_calibrated",
+      "image": "swebench-sandbox:calibrated-v1"
+    },
+    "rich_4076": {
+      "wheels": "wheels_calibrated_v2",
+      "image": "swebench-sandbox:calibrated-v1"
+    },
+    "rich_3882": {
+      "wheels": "wheels_calibrated_v2",
+      "image": "swebench-sandbox:calibrated-v1"
+    },
+    "fastapi_14463": {
+      "wheels": "wheels_calibrated",
+      "image": "swebench-sandbox:calibrated-v1"
+    },
+    "fastapi_14266": {
+      "wheels": "wheels_calibrated",
+      "image": "swebench-sandbox:calibrated-v1"
+    },
+    "fastapi_14448": {
+      "wheels": "wheels_calibrated",
+      "image": "swebench-sandbox:calibrated-v1"
+    },
+    "requests_7427": {
+      "wheels": "wheels_calibrated",
+      "image": "swebench-sandbox:calibrated-v1"
+    },
+    "rich_3953": {
+      "wheels": "wheels_calibrated_v2",
+      "image": "swebench-sandbox:calibrated-v1"
+    },
+    "fastapi_12942": {
+      "wheels": "wheels_calibrated",
+      "image": "swebench-sandbox:calibrated-v1"
+    },
+    "fastapi_14479": {
+      "wheels": "wheels_calibrated",
+      "image": "swebench-sandbox:calibrated-v1"
+    },
+    "rich_4079": {
+      "wheels": "wheels_profile_6e53aeb7",
+      "image": "swebench-sandbox:calibrated-v1"
+    },
+    "rich_3506": {
+      "wheels": "wheels_calibrated_v2",
+      "image": "swebench-sandbox:calibrated-v1"
+    },
+    "requests_6644": {
+      "wheels": "wheels_calibrated",
+      "image": "swebench-sandbox:calibrated-v1"
+    },
+    "rich_3043": {
+      "wheels": "wheels_calibrated_v2",
+      "image": "swebench-sandbox:calibrated-v1"
+    }
+  }
+}

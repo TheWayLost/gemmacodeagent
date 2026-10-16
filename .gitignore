@@ -1,0 +1,15 @@
+data/
+models/
+envs/
+cache/
+tmp/
+logs/
+runs/
+sandbox/
+wheelhouse/
+.env
+*token*
+*secret*
+__pycache__/
+*.pyc
+*.tar*

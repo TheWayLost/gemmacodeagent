@@ -1,0 +1,12 @@
+{
+  "url": "https://github.com/TheWayLost/gemmacodeagent/releases/download/v5-6000-v1/calibration-v1.tar.gz",
+  "size": 232905119,
+  "sha256": "aae29b9a58b0f51396531dd9dd9b9ac5a756638b8b10e238a302e53e4edfb46f",
+  "profiles": [
+    "wheels_calibrated",
+    "wheels_calibrated_v2",
+    "wheels_profile_675503c5",
+    "wheels_profile_6e53aeb7",
+    "wheels_profile_aed3c492"
+  ]
+}
