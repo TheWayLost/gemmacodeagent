@@ -1,0 +1,11 @@
+{
+  "target_hardware_tested": false,
+  "command_generation": "passed; eager, 1 sequence, 1024 batch tokens, 32768 context",
+  "slot_caps_tested": [
+    1,
+    2,
+    8
+  ],
+  "capacity_mismatch_rejected": true,
+  "submission_unchanged": true
+}

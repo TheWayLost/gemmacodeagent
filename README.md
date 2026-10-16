@@ -113,3 +113,7 @@ PRO 6000 TP1+chroot 与官方4×L4+Docker的时延、隔离不完全一致。冻
 - [官方 wheelhouse](https://www.kaggle.com/datasets/metric/gemma-4-developer-agent-wheelhouse)。保留版本和源码 hash，避免同版本补丁差异。
 
 Kaggle 应上传 artifacts/submission.zip，保持文件名 submission.zip；不要提交整个仓库或校准环境。本次发布不消耗新的 Kaggle 提交次数。
+
+## 单卡 48GB RTX 4090
+
+见 [4090 48GB 部署说明](docs/4090-48gb.md)：默认单路，可试两路，保留32k上下文与同一 submission。尚未完成目标硬件验收。

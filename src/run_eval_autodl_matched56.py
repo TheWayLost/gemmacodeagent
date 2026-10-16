@@ -94,7 +94,7 @@ async def main():
               "wheel_fingerprint":wheel_key,"wheels_dir":str(cfg.wheels_dir),
               "submission_files":{str(f.relative_to(submission)):hashlib.sha256(f.read_bytes()).hexdigest() for f in sorted(submission.rglob("*")) if f.is_file()},
               "tasks_sha256":hashlib.sha256(cfg.tasks_path.read_bytes()).hexdigest(),
-              "compaction_threshold":14336,"execution_concurrency":int(os.environ.get("ADP_CONCURRENCY","1")),"hardware":"AutoDL RTX PRO 6000 Blackwell 96GB TP1; AutoDL local chroot from calibrated Docker rootfs; separate calibration required; scorer TP4 L4 timing not identical"}
+              "compaction_threshold":14336,"execution_concurrency":int(os.environ.get("ADP_CONCURRENCY","1")),"hardware":os.environ.get("GEMMA_RUNTIME_PROFILE","pro6000")+"; TP1 local chroot; scorer TP4 L4 timing differs"}
     old_manifest=out/"manifest.json"
     if old_manifest.exists() and done:
         old=json.loads(old_manifest.read_text())
