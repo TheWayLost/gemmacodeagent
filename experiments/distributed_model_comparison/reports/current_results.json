@@ -1,0 +1,563 @@
+{
+  "timestamp_china": "20261017_204358",
+  "complete": false,
+  "arms": {
+    "gemma4_kaggle": {
+      "completed": 9,
+      "target": 16,
+      "resolved": 6,
+      "mean_seconds": 388.6480941428906,
+      "errors": {
+        "none": 9
+      }
+    },
+    "qwen35_base": {
+      "completed": 16,
+      "target": 16,
+      "resolved": 7,
+      "mean_seconds": 462.900234577246,
+      "errors": {
+        "Agent exceeded turns budget (160 turns)": 2,
+        "none": 13,
+        "Agent exceeded session timeout (15.0 min)": 1
+      }
+    },
+    "qwen35_swegym": {
+      "completed": 16,
+      "target": 16,
+      "resolved": 4,
+      "mean_seconds": 500.9999341709772,
+      "errors": {
+        "Agent exceeded turns budget (160 turns)": 7,
+        "none": 7,
+        "Sandbox execution error: litellm.BadRequestError: OpenAIException - No user query found in messages. LiteLLM Retried: 3 times": 1,
+        "Agent exceeded session timeout (15.0 min)": 1
+      }
+    },
+    "qwen38_base": {
+      "completed": 16,
+      "target": 16,
+      "resolved": 5,
+      "mean_seconds": 726.9615516443155,
+      "errors": {
+        "none": 6,
+        "Agent exceeded session timeout (15.0 min)": 10
+      }
+    }
+  },
+  "rows": [
+    {
+      "arm": "qwen38_base",
+      "task": "rich_3296",
+      "resolved": true,
+      "seconds": 277.8700164677575,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen38_base",
+      "task": "fastapi_15588",
+      "resolved": false,
+      "seconds": 288.64680182747543,
+      "error": null,
+      "test_exit_code": 1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen38_base",
+      "task": "requests_7315",
+      "resolved": true,
+      "seconds": 333.4519127588719,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen38_base",
+      "task": "rich_3676",
+      "resolved": true,
+      "seconds": 351.9044670276344,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen38_base",
+      "task": "rich_3043",
+      "resolved": true,
+      "seconds": 533.3696167413145,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen38_base",
+      "task": "fastapi_14458",
+      "resolved": true,
+      "seconds": 742.1008495595306,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen38_base",
+      "task": "httpx_3672",
+      "resolved": false,
+      "seconds": 905.8037082245573,
+      "error": "Agent exceeded session timeout (15.0 min)",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen38_base",
+      "task": "requests_6644",
+      "resolved": false,
+      "seconds": 910.2484981175512,
+      "error": "Agent exceeded session timeout (15.0 min)",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen38_base",
+      "task": "rich_3506",
+      "resolved": false,
+      "seconds": 910.689085835591,
+      "error": "Agent exceeded session timeout (15.0 min)",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen38_base",
+      "task": "requests_7205",
+      "resolved": false,
+      "seconds": 910.3992035118863,
+      "error": "Agent exceeded session timeout (15.0 min)",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen38_base",
+      "task": "requests_7427",
+      "resolved": false,
+      "seconds": 910.566786901094,
+      "error": "Agent exceeded session timeout (15.0 min)",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen38_base",
+      "task": "rich_3944",
+      "resolved": false,
+      "seconds": 910.353071753867,
+      "error": "Agent exceeded session timeout (15.0 min)",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen38_base",
+      "task": "fastapi_14448",
+      "resolved": false,
+      "seconds": 911.4534764336422,
+      "error": "Agent exceeded session timeout (15.0 min)",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen38_base",
+      "task": "fastapi_9425",
+      "resolved": false,
+      "seconds": 911.4942630631849,
+      "error": "Agent exceeded session timeout (15.0 min)",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen38_base",
+      "task": "fastapi_13786",
+      "resolved": false,
+      "seconds": 911.4157813619822,
+      "error": "Agent exceeded session timeout (15.0 min)",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen38_base",
+      "task": "fastapi_11355",
+      "resolved": false,
+      "seconds": 911.6172867231071,
+      "error": "Agent exceeded session timeout (15.0 min)",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_base",
+      "task": "fastapi_14448",
+      "resolved": false,
+      "seconds": 446.6509572863579,
+      "error": "Agent exceeded turns budget (160 turns)",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_swegym",
+      "task": "rich_3043",
+      "resolved": false,
+      "seconds": 776.9652929520234,
+      "error": "Agent exceeded turns budget (160 turns)",
+      "test_exit_code": 1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_swegym",
+      "task": "requests_7205",
+      "resolved": true,
+      "seconds": 91.39652073383331,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_swegym",
+      "task": "fastapi_9425",
+      "resolved": false,
+      "seconds": 786.3750422783196,
+      "error": "Agent exceeded turns budget (160 turns)",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_base",
+      "task": "rich_3043",
+      "resolved": true,
+      "seconds": 408.3843663521111,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_base",
+      "task": "httpx_3672",
+      "resolved": false,
+      "seconds": 623.6733880490065,
+      "error": null,
+      "test_exit_code": 1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_base",
+      "task": "fastapi_9425",
+      "resolved": true,
+      "seconds": 734.1823627036065,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_base",
+      "task": "requests_7427",
+      "resolved": true,
+      "seconds": 316.29712667968124,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_swegym",
+      "task": "fastapi_14448",
+      "resolved": false,
+      "seconds": 729.008721075952,
+      "error": "Agent exceeded turns budget (160 turns)",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_base",
+      "task": "fastapi_14458",
+      "resolved": true,
+      "seconds": 257.43897281959653,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_swegym",
+      "task": "fastapi_14458",
+      "resolved": true,
+      "seconds": 152.47852909378707,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_swegym",
+      "task": "rich_3506",
+      "resolved": false,
+      "seconds": 669.5443520955741,
+      "error": "Agent exceeded turns budget (160 turns)",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_swegym",
+      "task": "requests_7427",
+      "resolved": false,
+      "seconds": 656.4893766175956,
+      "error": "Agent exceeded turns budget (160 turns)",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_base",
+      "task": "requests_7205",
+      "resolved": true,
+      "seconds": 239.55776987876743,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_swegym",
+      "task": "httpx_3672",
+      "resolved": true,
+      "seconds": 268.05977508984506,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_base",
+      "task": "rich_3506",
+      "resolved": false,
+      "seconds": 769.6359384609386,
+      "error": null,
+      "test_exit_code": 1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_swegym",
+      "task": "requests_7315",
+      "resolved": true,
+      "seconds": 139.95916349533945,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_base",
+      "task": "fastapi_11355",
+      "resolved": false,
+      "seconds": 172.28736573271453,
+      "error": null,
+      "test_exit_code": 1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_base",
+      "task": "fastapi_15588",
+      "resolved": false,
+      "seconds": 211.56113247200847,
+      "error": null,
+      "test_exit_code": 1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_base",
+      "task": "requests_7315",
+      "resolved": true,
+      "seconds": 236.7498954338953,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_swegym",
+      "task": "rich_3676",
+      "resolved": false,
+      "seconds": 301.15375028923154,
+      "error": null,
+      "test_exit_code": 1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_base",
+      "task": "rich_3676",
+      "resolved": false,
+      "seconds": 393.7945679696277,
+      "error": null,
+      "test_exit_code": 1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_swegym",
+      "task": "fastapi_13786",
+      "resolved": false,
+      "seconds": 418.02335072122514,
+      "error": null,
+      "test_exit_code": 1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_base",
+      "task": "rich_3296",
+      "resolved": true,
+      "seconds": 465.24440183117986,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_swegym",
+      "task": "rich_3944",
+      "resolved": false,
+      "seconds": 482.2606613142416,
+      "error": "Sandbox execution error: litellm.BadRequestError: OpenAIException - No user query found in messages. LiteLLM Retried: 3 times",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_swegym",
+      "task": "fastapi_11355",
+      "resolved": false,
+      "seconds": 516.2218176685274,
+      "error": "Agent exceeded turns budget (160 turns)",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_swegym",
+      "task": "fastapi_15588",
+      "resolved": false,
+      "seconds": 544.6740339584649,
+      "error": null,
+      "test_exit_code": 1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_base",
+      "task": "requests_6644",
+      "resolved": false,
+      "seconds": 567.9469400951639,
+      "error": "Agent exceeded turns budget (160 turns)",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_swegym",
+      "task": "requests_6644",
+      "resolved": false,
+      "seconds": 576.2270377893001,
+      "error": "Agent exceeded turns budget (160 turns)",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_base",
+      "task": "fastapi_13786",
+      "resolved": false,
+      "seconds": 656.2626323187724,
+      "error": null,
+      "test_exit_code": 1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_base",
+      "task": "rich_3944",
+      "resolved": false,
+      "seconds": 906.7359351525083,
+      "error": "Agent exceeded session timeout (15.0 min)",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "qwen35_swegym",
+      "task": "rich_3296",
+      "resolved": false,
+      "seconds": 907.1615215623751,
+      "error": "Agent exceeded session timeout (15.0 min)",
+      "test_exit_code": -1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "gemma4_kaggle",
+      "task": "requests_7315",
+      "resolved": true,
+      "seconds": 202.78780524339527,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "gemma4_kaggle",
+      "task": "fastapi_15588",
+      "resolved": false,
+      "seconds": 255.77561073098332,
+      "error": null,
+      "test_exit_code": 1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "gemma4_kaggle",
+      "task": "httpx_3672",
+      "resolved": true,
+      "seconds": 356.25250639393926,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "gemma4_kaggle",
+      "task": "requests_7205",
+      "resolved": true,
+      "seconds": 357.84331465139985,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "gemma4_kaggle",
+      "task": "requests_6644",
+      "resolved": true,
+      "seconds": 437.44446058012545,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "gemma4_kaggle",
+      "task": "rich_3296",
+      "resolved": true,
+      "seconds": 438.3361911531538,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "gemma4_kaggle",
+      "task": "requests_7427",
+      "resolved": false,
+      "seconds": 447.52292015217245,
+      "error": null,
+      "test_exit_code": 1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "gemma4_kaggle",
+      "task": "rich_3944",
+      "resolved": false,
+      "seconds": 481.2944932738319,
+      "error": null,
+      "test_exit_code": 1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "gemma4_kaggle",
+      "task": "fastapi_14458",
+      "resolved": true,
+      "seconds": 520.5755451070145,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    }
+  ]
+}
