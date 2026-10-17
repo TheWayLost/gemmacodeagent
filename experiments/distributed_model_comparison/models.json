@@ -28,17 +28,24 @@
     "quantization": "published_fp8",
     "modelscope_repo": "Merkyor/Qwen3.8-27B-Coder390-EfficientThink-Opus5.5-GPT6Astra-Grok4.7-DSV4Pro-K3-SFT-RLOO-MTP-DFlash2"
   },
-  "qwen38_efficient": {
-    "repo": "nerkyor/Qwen3.8-27B-EfficientThink-Uncensored-K3-Opus5-Grok4.6-GPT5.6Sol-SFT-SimPO-DFlash2",
-    "subfolder": "FP8/",
-    "directory": "qwen38_efficient",
-    "quantization": "published_fp8",
-    "modelscope_repo": "Merkyor/Qwen3.8-27B-EfficientThink-K3-Opus5-Grok4.6-GPT5.6Sol-SFT-SimPO-DFlash2"
-  },
   "gemma4_kaggle": {
     "repo": "kaggle-provided-local-checkpoint",
     "directory": "gemma4_kaggle",
     "subfolder": "",
     "quantization": "original_kaggle_w4a16"
+  },
+  "gemma4_teich_agent": {
+    "repo": "TeichAI/Gemma-4-31B-Fable-5-Agent-Distill",
+    "directory": "gemma4_teich_agent",
+    "subfolder": "",
+    "quantization": "fp8",
+    "modelscope_repo": "TeichAI/Gemma-4-31B-Fable-5-Agent-Distill",
+    "modelscope_verified": true
+  },
+  "gemma4_capybara": {
+    "repo": "TendieLabs/Capybara-31B",
+    "directory": "gemma4_capybara",
+    "subfolder": "",
+    "quantization": "fp8"
   }
 }

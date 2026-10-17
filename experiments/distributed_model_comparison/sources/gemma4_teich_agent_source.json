@@ -1,0 +1,72 @@
+{
+  "repo": "TeichAI/Gemma-4-31B-Fable-5-Agent-Distill",
+  "revision": "ebe08879526495befe902e477d9db8ade56bbc2f",
+  "subfolder": "",
+  "files": [
+    {
+      "rfilename": ".gitattributes",
+      "blobId": "52373fe24473b1aa44333d318f578ae6bf04b49b",
+      "size": 1570
+    },
+    {
+      "rfilename": "chat_template.jinja",
+      "blobId": "f62ca843a405a3066bdbddba8e42c92dd1ca4058",
+      "size": 16934
+    },
+    {
+      "rfilename": "config.json",
+      "blobId": "19aa793fb8ff2cdc2f8846807c74de67c2af596b",
+      "size": 5708
+    },
+    {
+      "rfilename": "generation_config.json",
+      "blobId": "edda3c1950276d89fa83f5c515fdc0a38734fc59",
+      "size": 203
+    },
+    {
+      "rfilename": "model-00001-of-00002.safetensors",
+      "blobId": "f1c7c44f9d144ab26dc177f45b04cf791158335d",
+      "size": 49784788364,
+      "lfs": {
+        "sha256": "d44769e2cbb069c77f1ce995f93e9af2ebd0264afa61096f7dc01ccd87594a6c",
+        "size": 49784788364,
+        "pointerSize": 136
+      }
+    },
+    {
+      "rfilename": "model-00002-of-00002.safetensors",
+      "blobId": "7dbff8b4d8fe26010fdc18f057cd73dd55bc0761",
+      "size": 12761549884,
+      "lfs": {
+        "sha256": "36aeeed25e1198329c78522cdebba9045c8e042d9d124868af8cabe2cbff69bb",
+        "size": 12761549884,
+        "pointerSize": 136
+      }
+    },
+    {
+      "rfilename": "model.safetensors.index.json",
+      "blobId": "17fcef4a0ceb639c8ad4e2f7719f70aaff7de63b",
+      "size": 120246
+    },
+    {
+      "rfilename": "processor_config.json",
+      "blobId": "5465974d23e1eca2c46c2809b26c997946ce0d90",
+      "size": 1689
+    },
+    {
+      "rfilename": "tokenizer.json",
+      "blobId": "1ff9f3e3439a939b971f9919e821bf87e835a503",
+      "size": 32169626,
+      "lfs": {
+        "sha256": "cc8d3a0ce36466ccc1278bf987df5f71db1719b9ca6b4118264f45cb627bfe0f",
+        "size": 32169626,
+        "pointerSize": 133
+      }
+    },
+    {
+      "rfilename": "tokenizer_config.json",
+      "blobId": "c8cdeb66a80e7c39582283185682ba050ee7f8ee",
+      "size": 24234
+    }
+  ]
+}

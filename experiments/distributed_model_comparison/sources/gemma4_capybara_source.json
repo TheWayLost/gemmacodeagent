@@ -1,0 +1,72 @@
+{
+  "repo": "TendieLabs/Capybara-31B",
+  "revision": "7c28870d5549f93f16fba0ae3cbd5fc705bb2994",
+  "subfolder": "",
+  "files": [
+    {
+      "rfilename": ".gitattributes",
+      "blobId": "52373fe24473b1aa44333d318f578ae6bf04b49b",
+      "size": 1570
+    },
+    {
+      "rfilename": "README.md",
+      "blobId": "4821a822c374c1f4a05da553013b5fc2cc33c431",
+      "size": 5903
+    },
+    {
+      "rfilename": "chat_template.jinja",
+      "blobId": "33c51c2dbf7e7494b2c055cae7b52f523d3df564",
+      "size": 12045
+    },
+    {
+      "rfilename": "config.json",
+      "blobId": "78d2a063ec72db37a6a6a02d32467d5c10fa689e",
+      "size": 5547
+    },
+    {
+      "rfilename": "model-00001-of-00002.safetensors",
+      "blobId": "3a66a2fa643f665c10e641c9b48b467502ebe06e",
+      "size": 49784788364,
+      "lfs": {
+        "sha256": "48a864b115522ac3a526f4311b83b70b535e8c5ae4995e99212e620870a87c81",
+        "size": 49784788364,
+        "pointerSize": 136
+      }
+    },
+    {
+      "rfilename": "model-00002-of-00002.safetensors",
+      "blobId": "05e7fabbcb4b67f361f7d92eb86a49ac1dae9f9e",
+      "size": 12761549884,
+      "lfs": {
+        "sha256": "653d879adf1f09e5fdf0d2644e8a3b2ba4b0d64c942c02e8c29f644434622512",
+        "size": 12761549884,
+        "pointerSize": 136
+      }
+    },
+    {
+      "rfilename": "model.safetensors.index.json",
+      "blobId": "17fcef4a0ceb639c8ad4e2f7719f70aaff7de63b",
+      "size": 120246
+    },
+    {
+      "rfilename": "processor_config.json",
+      "blobId": "bfaa5e360ad17c2761b7ee3b05abf03e381e8aa1",
+      "size": 1688
+    },
+    {
+      "rfilename": "tokenizer.json",
+      "blobId": "1ff9f3e3439a939b971f9919e821bf87e835a503",
+      "size": 32169626,
+      "lfs": {
+        "sha256": "cc8d3a0ce36466ccc1278bf987df5f71db1719b9ca6b4118264f45cb627bfe0f",
+        "size": 32169626,
+        "pointerSize": 133
+      }
+    },
+    {
+      "rfilename": "tokenizer_config.json",
+      "blobId": "b7672192d1cf71c679aae25261937f298460cf9c",
+      "size": 15032
+    }
+  ]
+}

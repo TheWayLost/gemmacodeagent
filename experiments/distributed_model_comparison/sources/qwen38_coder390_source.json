@@ -1,0 +1,157 @@
+{
+  "repo": "nerkyor/Qwen3.8-27B-Coder390-EfficientThink-Opus5.5-GPT6Astra-Grok4.7-DSV4Pro-K3-SFT-RLOO-MTP-DFlash2",
+  "revision": "0f30785e22bc20d6a4188251d3a7e898c3d691ea",
+  "subfolder": "FP8/",
+  "files": [
+    {
+      "rfilename": "FP8/SHA256SUMS",
+      "blobId": "ebdceb2571051b1a63ed9e0c029c8acd62d11a14",
+      "size": 1570
+    },
+    {
+      "rfilename": "FP8/chat_template.jinja",
+      "blobId": "c0c686f9c38d70d179fb7b5f5aa7530bc913dda3",
+      "size": 8952
+    },
+    {
+      "rfilename": "FP8/config.json",
+      "blobId": "41e821887fd8e8c12377e7e041316eb4b0030ae7",
+      "size": 17784
+    },
+    {
+      "rfilename": "FP8/generation_config.json",
+      "blobId": "c53835dc1fca33e4e840690f5c458c9983f97fc6",
+      "size": 214
+    },
+    {
+      "rfilename": "FP8/model.safetensors.index.json",
+      "blobId": "3dbaf096952870f13823ea56aee29ea2d6258998",
+      "size": 135976
+    },
+    {
+      "rfilename": "FP8/mtp-bf16.safetensors",
+      "blobId": "a7a4f54b4fb913fea266da46a56779ef96880d9e",
+      "size": 849400424,
+      "lfs": {
+        "sha256": "90fa0e3eed5a647c035c6df9ecabc416c0f8d573ff84ac12485b085f00a7cdf2",
+        "size": 849400424,
+        "pointerSize": 134
+      }
+    },
+    {
+      "rfilename": "FP8/preprocessor_config.json",
+      "blobId": "2ea84a437d448ff71b08df68fdd949d5cc4ebb64",
+      "size": 390
+    },
+    {
+      "rfilename": "FP8/text-01.safetensors",
+      "blobId": "8a7b13137fad8bc802926bb04568324f1a2d2ab0",
+      "size": 2542796928,
+      "lfs": {
+        "sha256": "54d83c1d36631de231876217a8e0c2483eccee8746369a482b79442bdfc5d958",
+        "size": 2542796928,
+        "pointerSize": 135
+      }
+    },
+    {
+      "rfilename": "FP8/text-02.safetensors",
+      "blobId": "f9d0690f218fc241ba33bace7540c743edce1519",
+      "size": 3998718144,
+      "lfs": {
+        "sha256": "5b1e34725cd88924495765149ff816903d702180c72561c2e22e8377e2044fa8",
+        "size": 3998718144,
+        "pointerSize": 135
+      }
+    },
+    {
+      "rfilename": "FP8/text-03.safetensors",
+      "blobId": "266fc1ae2b989568e525c84a995bc9f117b3c712",
+      "size": 3969173888,
+      "lfs": {
+        "sha256": "5e2376d6cce25aecf2d8901959f9d6f98801a0b2e98331f4088481bf839c9cf3",
+        "size": 3969173888,
+        "pointerSize": 135
+      }
+    },
+    {
+      "rfilename": "FP8/text-04.safetensors",
+      "blobId": "347fc6aff615fc815bd6b9ebfb07b8a73759d8d3",
+      "size": 3925079000,
+      "lfs": {
+        "sha256": "669b87fd69d2de004073ed633f8e2890c8c9c90e1101bd59c859f1431b5cb967",
+        "size": 3925079000,
+        "pointerSize": 135
+      }
+    },
+    {
+      "rfilename": "FP8/text-05.safetensors",
+      "blobId": "7029fecdef1d842faa852aaa1d63d4d2b6f8e388",
+      "size": 3994338456,
+      "lfs": {
+        "sha256": "3f150179f9e3f03e2ef2e1afc805e7d745c1ab88dd72776fadf7c33f1d73ae67",
+        "size": 3994338456,
+        "pointerSize": 135
+      }
+    },
+    {
+      "rfilename": "FP8/text-06.safetensors",
+      "blobId": "db74a7abe95bbf2d87b9c09f0573a23a19bd6822",
+      "size": 3920901280,
+      "lfs": {
+        "sha256": "4d658974b7efb906972bc66cb4fd6dc7f1b7ac1fa79a7db068442314e3bf75d4",
+        "size": 3920901280,
+        "pointerSize": 135
+      }
+    },
+    {
+      "rfilename": "FP8/text-07.safetensors",
+      "blobId": "a223ed3311adee6766bfad142cb9f3b6384bb4aa",
+      "size": 3972285640,
+      "lfs": {
+        "sha256": "d155ad91985b57e2515cea321a474708dd162665d1f5870df1c85601a2ca9b2c",
+        "size": 3972285640,
+        "pointerSize": 135
+      }
+    },
+    {
+      "rfilename": "FP8/text-08.safetensors",
+      "blobId": "7bf5476f47c5860b136f01fa6edc2692f85f9626",
+      "size": 3147842216,
+      "lfs": {
+        "sha256": "e37d025cd9bcacdd00fa0969f5c827d2504019c020585dfe1aca3934152b7700",
+        "size": 3147842216,
+        "pointerSize": 135
+      }
+    },
+    {
+      "rfilename": "FP8/tokenizer.json",
+      "blobId": "5520bfd2dd834ce386c1312c410fa71af56db5ad",
+      "size": 19989325,
+      "lfs": {
+        "sha256": "06b9509352d2af50381ab2247e083b80d32d5c0aba91c272ca9ff729b6a0e523",
+        "size": 19989325,
+        "pointerSize": 133
+      }
+    },
+    {
+      "rfilename": "FP8/tokenizer_config.json",
+      "blobId": "0f19934ef65115549ff9629ff2c83d15e40e32d8",
+      "size": 1075
+    },
+    {
+      "rfilename": "FP8/video_preprocessor_config.json",
+      "blobId": "3ba673a5ad7d4d13f54155ecd38b2a94a6dac8fe",
+      "size": 385
+    },
+    {
+      "rfilename": "FP8/vision-bf16.safetensors",
+      "blobId": "ea836a88838a13c3dab0675c4f020e697f35d634",
+      "size": 921497224,
+      "lfs": {
+        "sha256": "d7defc90994f7bbc58a8feb8d3c4144895babb434a9be9f47e88ae3646e1df33",
+        "size": 921497224,
+        "pointerSize": 134
+      }
+    }
+  ]
+}

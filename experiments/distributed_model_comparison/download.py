@@ -12,6 +12,8 @@ def digest(p):
  with p.open('rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
 def _download(repo,sub,name):
  source=Q/(name+'_source.json')
+ pinned=Path(__file__).parent/'sources'/(name+'_source.json')
+ if not source.exists() and pinned.exists():source.write_bytes(pinned.read_bytes())
  if source.exists():
   prior=json.loads(source.read_text());host='https://hf-mirror.com';d={'sha':prior['revision'],'siblings':prior['files']}
  else:host,d=meta(repo)

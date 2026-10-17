@@ -1,0 +1,27 @@
+{
+  "repo": "Shreyansh327/qwen3.5-9b-swegym-lora-full",
+  "revision": "d7c7ee36238ef64d9b8eff926726e139a4bad8c2",
+  "subfolder": "",
+  "files": [
+    {
+      "rfilename": "adapter_config.json",
+      "blobId": "d55a8215282b82851f287a427041a98017e2b098",
+      "size": 1094
+    },
+    {
+      "rfilename": "adapter_model.safetensors",
+      "blobId": "11b10e509a23d26673f59cb60be4817add8265d7",
+      "size": 116426136,
+      "lfs": {
+        "sha256": "e80994fca4ed76ed52278e95934c8b3f2e4bbc309f39415f994b3ed9aca3956f",
+        "size": 116426136,
+        "pointerSize": 134
+      }
+    },
+    {
+      "rfilename": "chat_template.jinja",
+      "blobId": "a585dec894e63da457d9440ec6aa7caa16d20860",
+      "size": 7756
+    }
+  ]
+}

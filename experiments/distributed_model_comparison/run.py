@@ -4,6 +4,8 @@ S=Path(__file__).resolve().parent;P=Path(os.environ['CODEAGENT_ROOT']);Q=P/'rese
 PYTHON=str(P/'envs/eval/bin/python');specs=json.loads((S/'models.json').read_text())
 ap=argparse.ArgumentParser();ap.add_argument('--scope',choices=['pilot','pilot16','all'],default='all');ap.add_argument('--arms',nargs='+',default=list(specs));ap.add_argument('--concurrency',type=int,default=16);ap.add_argument('--worker-index',type=int,default=0);ap.add_argument('--workers',type=int,default=1);args=ap.parse_args()
 assert 1<=args.workers<=4 and 0<=args.worker_index<args.workers
+assert set(args.arms)<=set(specs)
+assert 'qwen35_swegym' not in args.arms or 'qwen35_base' in args.arms, 'LoRA requires shared base arm'
 O=O/('worker_'+str(args.worker_index)+'_of_'+str(args.workers));O.mkdir(parents=True,exist_ok=True)
 lock=(O/'driver.lock').open('a');fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
 rows=[json.loads(x) for x in (P/'data/tasks.jsonl').read_text().splitlines()];allids=[x.get('instance_id',x.get('task_id')) for x in rows]
@@ -75,13 +77,18 @@ try:
    if not (path/'DOWNLOAD_COMPLETE').exists():
     d=process([PYTHON,str(S/'download.py'),a],Q/(a+'_download.log'));assert d.wait()==0,('download failure',a)
   index=remaining.index(arm)
-  if index+1<len(remaining) and remaining[index+1]!='gemma4_kaggle':
+  if os.environ.get('MM_PREFETCH','0')=='1' and index+1<len(remaining) and remaining[index+1]!='gemma4_kaggle':
    nxt=remaining[index+1];src=Q/(specs[nxt]['directory']+'_source.json')
    required=sum(x.get('size',0) for x in json.loads(src.read_text())['files']) if src.exists() else 35*1024**3
    if shutil.disk_usage(Q).free>required+12*1024**3:
     pre=process([PYTHON,str(S/'download.py'),nxt],Q/(nxt+'_prefetch.log'));state['prefetch']={'arm':nxt,'pid':pre.pid}
   state['phase']='model_health';save();server=process([PYTHON,str(S/'serve.py'),arm],Q/(arm+'_server.log'))
-  h=process([PYTHON,str(S/'health.py'),arm,str(min(args.concurrency,len(ids)*len(group)))],Q/(arm+'_health.log'));assert h.wait()==0,('model health failure',arm)
+  h=process([PYTHON,str(S/'health.py'),arm,str(min(args.concurrency,len(ids)*len(group)))],Q/(arm+'_health.log'))
+  while h.poll() is None:
+   if server.poll() is not None:
+    os.killpg(h.pid,signal.SIGTERM);raise RuntimeError('Model server exited during health gate: '+arm)
+   time.sleep(2)
+  assert h.returncode==0,('model health failure',arm)
   capacity=json.loads((Q/(arm+'_health.json')).read_text())['concurrency'];n=min(args.concurrency,capacity)
   state['phase']='calibration';save()
   with cf.ThreadPoolExecutor(max_workers=8) as pool:
@@ -93,7 +100,7 @@ try:
   state['phase']='model_complete';save();os.killpg(server.pid,signal.SIGTERM);server.wait(timeout=90);server=None
   # This experiment uses a disposable, reproducible weight cache on the data disk.
   # Retain all source revisions, hashes, configs, prompts, traces and results.
-  if os.environ.get('MM_KEEP_WEIGHTS','0')!='1' and arm not in ['qwen35_base','gemma4_kaggle']:
+  if os.environ.get('MM_KEEP_WEIGHTS','0')!='1' and arm!='gemma4_kaggle':
    for a in group:
     cache=(Q/'models'/specs[a]['directory']).resolve();assert cache.parent==(Q/'models').resolve()
     removed=[]

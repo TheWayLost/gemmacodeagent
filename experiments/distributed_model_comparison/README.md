@@ -1,68 +1,74 @@
-# Six-model comparison on 3 or 4 PRO 6000 servers
+# Seven models / all 129 tasks / 3–4 PRO 6000 servers
 
-Runs **all 129 tasks**, not only the development subset: **774 task-model evaluations** across Qwen3.8-27B FP8, Coder390 FP8, EfficientThink FP8, Qwen3.5-9B runtime FP8, its SWE-Gym LoRA, and the original Kaggle Gemma 4 W4A16 checkpoint. The two newly queued Gemma fine-tunes are excluded.
+Default **7 × 129 = 903 evaluations**. Each server uses its own 96 GiB PRO 6000, runs all models sequentially on a disjoint task shard, with up to 16 rolling concurrent tasks. No cross-server inference.
 
-## Validation status
+## Models and validation status (2026-10-17)
 
-See `reports/current_results.json` for dated partial pilot results. Qwen3.8 base and both 9B arms completed 16 tasks. Kaggle Gemma passed tool/budget/concurrency gates and is being evaluated. Coder390 and EfficientThink are not yet end-to-end validated. Partition logic is checked for disjoint exhaustive coverage; a full multi-server run has not yet been performed.
+| Arm | Model | Fixed16 resolved |
+|---|---|---:|
+| qwen35_base | Qwen3.5-9B runtime FP8 | 7/16 |
+| qwen35_swegym | SWE-Gym LoRA on the same FP8 base | 4/16 |
+| qwen38_base | Qwen3.8-27B-FP8 | 5/16 |
+| qwen38_coder390 | nerkyor Coder390 published FP8 | 7/16 |
+| gemma4_kaggle | original Kaggle Gemma 4 W4A16 | 9/16 |
+| gemma4_teich_agent | TeichAI/Gemma-4-31B-Fable-5-Agent-Distill | not run |
+| gemma4_capybara | TendieLabs/Capybara-31B | not run |
 
-## Prepare each server
+EfficientThink was cancelled and is excluded. Interrupted attempts are not scored. Both new Gemma models require BF16 download and runtime FP8; compatibility is NOT yet validated. The package has static/partition checks, but a full multi-server run has NOT been performed. See reports/RESULTS.md and reports/current_results.json.
 
-One 96 GiB PRO 6000 per server. Run the parent repository's `scripts/setup.sh` following its README for the pinned evaluator, rootfs, calibrated wheels and Kaggle Gemma weights. A generic PyPI evaluator is not equivalent. Keep everything on persistent storage.
+## 1. Prepare EACH server
+
+Keep everything on persistent storage. Recommend **250 GiB or larger** disk; 150 GiB may need manual space management. Each new Gemma downloads about 62.55 GB before FP8 conversion. Completed weight caches are removed by default; logs/results remain. Prefetch is disabled by default. Use MM_KEEP_WEIGHTS=1 only with space for all weights.
 
 ```bash
-export CODEAGENT_ROOT=/root/autodl-tmp/codeagent/gemma4
-cd /path/to/gemmacodeagent
+mkdir -p /root/autodl-tmp/codeagent
+cd /root/autodl-tmp/codeagent
+git clone https://github.com/TheWayLost/gemmacodeagent.git
+cd gemmacodeagent
+# IMPORTANT: setup.sh installs relative to the repository root.
+export CODEAGENT_ROOT="$PWD"
 export PACKAGE="$PWD/experiments/distributed_model_comparison"
+# Export your own KAGGLE_API_TOKEN and HF_TOKEN if required for gated assets.
+bash scripts/setup.sh
+envs/eval/bin/python scripts/download_model.py
 mkdir -p "$CODEAGENT_ROOT/tmp/mm"
-# Supply your own KAGGLE_API_TOKEN if competition artifacts are missing.
-"$CODEAGENT_ROOT/envs/eval/bin/python" "$PACKAGE/prepare_all.py"
-"$CODEAGENT_ROOT/envs/eval/bin/python" "$PACKAGE/check_partition.py"
+envs/eval/bin/python "$PACKAGE/prepare_all.py"
+envs/eval/bin/python "$PACKAGE/check_partition.py"
 ```
 
-Artifacts and weights are hash-checked. Large model files prefer ModelScope when accessible; pinned HF hashes remain authoritative. A 150 GiB disk requires rotating completed weight caches; logs/results remain. Use `MM_KEEP_WEIGHTS=1` only with more space.
+A generic PyPI evaluator is not equivalent. prepare_all.py prepares all 129-task artifacts. Model downloads start automatically and resume range chunks. Bundled source manifests pin available revisions. Large files try ModelScope then HF Mirror. Teich has a ModelScope repository; no usable Capybara mirror was found. Normal file integrity checks remain; no separate cross-site verification is required before downloading.
 
-## Run the 16-task gate first
+## 2. Start all 129 tasks
+
+Use ONE partition count and distinct worker indices. The launcher runs a model health gate before each model's tasks; no separate 16-task pilot is necessary.
 
 ```bash
-"$CODEAGENT_ROOT/envs/eval/bin/python" "$PACKAGE/run.py" --scope pilot16 --concurrency 16
+# On 3 machines: use index 0, 1, 2 respectively
+bash "$PACKAGE/launch_worker.sh" 3 0
+# OR on 4 machines: use index 0, 1, 2, 3 respectively
+bash "$PACKAGE/launch_worker.sh" 4 0
 ```
 
-Each model must pass tool calling, thinking-budget enforcement and concurrency checks before scoring. Infrastructure failures stop the run; do not silently replace failures with successful retries.
+3 machines: 43 tasks × 7 = **301 evaluations each**.
+4 machines: 33/32/32/32 tasks = **231/224/224/224 evaluations**.
+Do not mix partitions or run multiple drivers per GPU. Use the same Git commit and source manifests everywhere. Launcher prints PID and log path. Default 16 slots; set MM_CONCURRENCY=8 to lower it. The health gate may reduce concurrency. Record contention changes under a fixed wall-clock limit.
 
-## Full evaluation on 3 servers
+The new Gemma arms must pass loading/tool/budget checks before scoring. On errors, preserve server and health logs and diagnose; do not silently substitute quantization or selectively retry results. Resume with the same command/config: completed result files are reused. Changed protocols require a separate result root.
 
-Run one command per server, with distinct indices:
+Optional pilot: `python "$PACKAGE/run.py" --scope pilot16 --concurrency 16`.
 
-```bash
-# Server 1
-"$CODEAGENT_ROOT/envs/eval/bin/python" -u "$PACKAGE/run.py" --scope all --workers 3 --worker-index 0 --concurrency 16
-# Server 2
-"$CODEAGENT_ROOT/envs/eval/bin/python" -u "$PACKAGE/run.py" --scope all --workers 3 --worker-index 1 --concurrency 16
-# Server 3
-"$CODEAGENT_ROOT/envs/eval/bin/python" -u "$PACKAGE/run.py" --scope all --workers 3 --worker-index 2 --concurrency 16
-```
+## 3. Protocol and merge
 
-Each server gets 43 tasks and all six models: 258 evaluations per server.
+Budget-Fit v5: **900 seconds/task, thinking budget 6000**, 56 tool calls, 160 turns, output 8192, temperature 0.2, top-p 0.95, context 32768, compaction 14336. Rolling concurrency, no speculative decoding. Qwen/new Gemma use vLLM generation defaults; original Gemma retains checkpoint defaults including top-k. FP8 protected layers vary; original Gemma is W4A16. This is a deployment comparison, not an isolated causal estimate of training quality.
 
-## Full evaluation on 4 servers
+Gold/empty calibration runs for each shard. All 129 tasks are attempted, including historically invalid environments. Report raw 129-task scores AND valid-environment scores, infrastructure/API errors and timeouts separately. calibration_audit.json records fresh checks; environment_previously_valid is historical and is not a substitute. Raw requests/responses, reasoning, patches and tests remain on each worker.
 
-Use `--workers 4` and worker indices `0`, `1`, `2`, `3` on four servers. Task counts are 33/32/32/32, evaluation counts 198/192/192/192. **Do not mix 3-worker and 4-worker partitions.** Use tmux/nohup to survive SSH disconnection. Run only one evaluator per GPU.
-
-Freed slots are filled immediately. Default concurrency 16 matches the expanded pilot; the health gate can select less. `--concurrency 32` tests 8/16/24/32, but changes per-task contention under the fixed deadline: record it as a separate condition.
-
-## Protocol
-
-Budget-Fit v5: 15 minutes, thinking budget 6000, 56 tool calls, 160 turns, max output 8192, temperature 0.2, top-p 0.95, context 32768, compaction 14336. Model-specific tool/reasoning parsers are required. Qwen uses vLLM generation defaults; Kaggle Gemma retains its checkpoint generation defaults including top-k. This is a deployment comparison, not identical token-level sampling.
-
-Qwen uses FP8 (protected layers vary); Kaggle Gemma uses W4A16. No speculative decoding. The 9B pair shares a base. Gold/empty calibration distinguishes invalid environments from model failures. Report API/template errors separately. Small pilot results do not establish general training-method effects.
-
-## Merge results
-
-State files live under `$CODEAGENT_ROOT/runs/distributed_model_comparison/worker_INDEX_of_COUNT/`. Collect each `all_state.json` with unique names, then:
+State: `$CODEAGENT_ROOT/runs/distributed_model_comparison/worker_INDEX_of_COUNT/all_state.json`.
+Server/health/download logs: `$CODEAGENT_ROOT/research/distributed_model_comparison/`.
+Collect state files with distinct filenames and also retain calibration audits and protocol files:
 
 ```bash
 python "$PACKAGE/merge_results.py" results/server*.json --output results/merged.json
 ```
 
-The merger rejects incomplete/mixed partitions, duplicates and missing tasks. Raw requests/responses, reasoning, patches and tests remain on each server under `runs/distributed_model_comparison/`. Never upload credentials or private teacher logs.
+Merger rejects incomplete/mixed partitions, duplicate workers and missing task-model pairs. Never publish credentials/private teacher logs. Small pilot differences do not establish general training-method effects.
