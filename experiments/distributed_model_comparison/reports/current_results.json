@@ -1,14 +1,14 @@
 {
-  "timestamp_china": "20261017_204358",
+  "timestamp_china": "20261017_204805",
   "complete": false,
   "arms": {
     "gemma4_kaggle": {
-      "completed": 9,
+      "completed": 14,
       "target": 16,
-      "resolved": 6,
-      "mean_seconds": 388.6480941428906,
+      "resolved": 8,
+      "mean_seconds": 481.14190376709615,
       "errors": {
-        "none": 9
+        "none": 14
       }
     },
     "qwen35_base": {
@@ -557,6 +557,51 @@
       "seconds": 520.5755451070145,
       "error": null,
       "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "gemma4_kaggle",
+      "task": "fastapi_14448",
+      "resolved": false,
+      "seconds": 575.8960663760081,
+      "error": null,
+      "test_exit_code": 1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "gemma4_kaggle",
+      "task": "fastapi_11355",
+      "resolved": false,
+      "seconds": 594.3474502759054,
+      "error": null,
+      "test_exit_code": 1,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "gemma4_kaggle",
+      "task": "fastapi_9425",
+      "resolved": true,
+      "seconds": 604.4890943719074,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "gemma4_kaggle",
+      "task": "rich_3043",
+      "resolved": true,
+      "seconds": 697.3862035851926,
+      "error": null,
+      "test_exit_code": 0,
+      "scope": "pilot16"
+    },
+    {
+      "arm": "gemma4_kaggle",
+      "task": "rich_3676",
+      "resolved": false,
+      "seconds": 766.0349908443168,
+      "error": null,
+      "test_exit_code": 1,
       "scope": "pilot16"
     }
   ]
