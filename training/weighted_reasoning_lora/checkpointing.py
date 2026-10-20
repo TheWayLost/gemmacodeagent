@@ -5,12 +5,13 @@ import torch.distributed as dist
 def barrier(world):
  if world>1:dist.barrier()
 
-def save_checkpoint(model,optimizer,out,step,rank,world,device):
+def save_checkpoint(model,optimizer,out,step,rank,world,device,base_identity=None):
  p=pathlib.Path(out)/f'checkpoint-{step}'
  if rank==0:
   p.mkdir(parents=True,exist_ok=True)
   if (p/'COMPLETE.json').exists():(p/'COMPLETE.json').unlink()
   model.save_pretrained(p/'adapter')
+  if base_identity is not None:(p/'base_identity.json').write_text(json.dumps(base_identity,indent=2))
   torch.save({'step':step,'optimizer':optimizer.state_dict()},p/'training_state.pt')
  barrier(world)
  rng={'world_size':world,'cpu':torch.get_rng_state(),'cuda':torch.cuda.get_rng_state(device) if device.type=='cuda' else None}

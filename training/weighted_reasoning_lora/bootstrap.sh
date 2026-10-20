@@ -7,7 +7,7 @@ ROOT=${TRAIN_ROOT:-/workspace/weighted_reasoning_lora}
 mkdir -p "$ROOT"
 export HF_HOME=${HF_HOME:-$ROOT/hf_cache}
 python -c 'import torch; assert torch.cuda.is_available(); print(torch.__version__, torch.cuda.get_device_name())'
-python -m pip install -r requirements.txt
+python -m pip install --extra-index-url https://download.pytorch.org/whl/cu128 -r requirements.txt
 python - "$ROOT" <<'PY'
 import sys,json,pathlib,os,re
 from huggingface_hub import snapshot_download
@@ -19,7 +19,9 @@ for kind in ['model','dataset']:
  spec=lock[kind];snapshot_download(spec['repo_id'],revision=spec['revision'],repo_type=None if kind=='model' else 'dataset',local_dir=None if kind=='model' else root/'dataset',max_workers=8)
 PY
 REV=$(python -c 'import json;print(json.load(open("revisions.json"))["model"]["revision"])')
+python -c 'from base_loading import verify_source_hash; print(verify_source_hash())'
 python prepare.py --data "$ROOT/dataset" --output "$ROOT/tokenized" --revision "$REV"
 python test_weighting.py
 python test_template.py
+python test_w4_contract.py
 printf 'Ready. Run the single-card smoke test in README.md before a full job.\n'

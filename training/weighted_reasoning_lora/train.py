@@ -5,9 +5,10 @@ import torch.distributed as dist
 import torch.nn.functional as F
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data import DataLoader,DistributedSampler
-from transformers import Gemma4ForConditionalGeneration
 from peft import LoraConfig,get_peft_model,PeftModel
 from checkpointing import save_checkpoint,load_optimizer,restore_rng
+from validate_w4 import audit_decoded,audit_adapter
+from base_loading import MODEL_ID,check_source,check_resume,load_base,base_identity,assert_lora_only
 from tracking import add_arguments,Tracker,progress_metrics,finish_active,gather_rank_stats
 
 def weighted_sum(logits,labels,weights):
@@ -27,7 +28,9 @@ def forward_sum(model,row,device):
  return weighted_sum(out.logits,labels,weights),weights.sum()
 
 def main():
- ap=argparse.ArgumentParser();ap.add_argument('--data',required=True);ap.add_argument('--output',required=True);ap.add_argument('--model',default='google/gemma-4-31B-it-qat-q4_0-unquantized');ap.add_argument('--revision',required=True);ap.add_argument('--steps',type=int,default=0);ap.add_argument('--accum',type=int,default=4);ap.add_argument('--lr',type=float,default=2e-5);ap.add_argument('--seed',type=int,default=42);ap.add_argument('--smoke',action='store_true');ap.add_argument('--resume');ap.add_argument('--save-every',type=int,default=50);ap.add_argument('--attention',default='sdpa');add_arguments(ap);args=ap.parse_args()
+ ap=argparse.ArgumentParser();ap.add_argument('--data',required=True);ap.add_argument('--output',required=True);ap.add_argument('--model',default=MODEL_ID);ap.add_argument('--revision',required=True);ap.add_argument('--steps',type=int,default=0);ap.add_argument('--accum',type=int,default=4);ap.add_argument('--lr',type=float,default=2e-5);ap.add_argument('--seed',type=int,default=42);ap.add_argument('--smoke',action='store_true');ap.add_argument('--resume');ap.add_argument('--save-every',type=int,default=50);ap.add_argument('--attention',default='sdpa');add_arguments(ap);args=ap.parse_args()
+ check_source(args.model,args.revision)
+ if args.resume:check_resume(args.resume)
  rank=int(os.environ.get('RANK',0));world=int(os.environ.get('WORLD_SIZE',1));local=int(os.environ.get('LOCAL_RANK',0));assert 1<=world<=4
  assert args.accum>0 and args.lr>0
  torch.cuda.set_device(local);device=torch.device('cuda',local)
@@ -38,8 +41,10 @@ def main():
  rows=[json.loads(l) for l in open(args.data)];assert rows
  if args.steps==0:args.steps=(len(rows)+world*args.accum-1)//(world*args.accum)
  if args.smoke:
-  ordered=sorted(rows,key=lambda x:len(x['input_ids']));rows=[ordered[0],ordered[int(.95*(len(ordered)-1))],ordered[-1]];args.steps=3;args.accum=1
- base=Gemma4ForConditionalGeneration.from_pretrained(args.model,revision=args.revision,dtype=torch.bfloat16,attn_implementation=args.attention,device_map={'':local},local_files_only=True)
+  rows=[max(rows,key=lambda x:len(x['input_ids']))];args.steps=1;args.accum=1
+ base=load_base(args.model,args.revision,local,args.attention)
+ if rank==0:
+  audit=audit_decoded(base);(out/'base_audit.json').write_text(json.dumps(audit,indent=2));print(json.dumps(audit),flush=True)
  base.config.use_cache=False;base.config.text_config.use_cache=False
  # Nested FFN checkpointing bounds activation memory for long repository histories.
  from torch.utils.checkpoint import checkpoint
@@ -52,10 +57,12 @@ def main():
    module.forward=chunked
  targets=r'.*language_model.*\.(q_proj|k_proj|v_proj|o_proj|gate_proj|up_proj|down_proj)$'
  if args.resume:model=PeftModel.from_pretrained(base,str(pathlib.Path(args.resume)/'adapter'),is_trainable=True)
- else:model=get_peft_model(base,LoraConfig(r=16,lora_alpha=16,lora_dropout=.05,target_modules=targets,bias='none',task_type='CAUSAL_LM'))
+ else:model=get_peft_model(base,LoraConfig(revision=args.revision,r=16,lora_alpha=16,lora_dropout=.05,target_modules=targets,bias='none',task_type='CAUSAL_LM'))
+ assert_lora_only(model)
  model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={'use_reentrant':False});model.enable_input_require_grads()
  trainable=[p for p in model.parameters() if p.requires_grad];assert trainable
  if rank==0:
+  (out/'base_identity.json').write_text(json.dumps(base_identity(),indent=2))
   model.print_trainable_parameters();(out/'config.json').write_text(json.dumps(vars(args)|{'world_size':world,'trainable_parameters':sum(p.numel() for p in trainable),'loss':'sum(w*CE)/sum(w), prompt=0, reasoning=0.25, action/boundaries=1','gpu':torch.cuda.get_device_name()},indent=2))
  optimizer=torch.optim.AdamW(trainable,lr=args.lr,weight_decay=.01)
  start=0
@@ -81,7 +88,9 @@ def main():
  if args.resume:restore_rng(args.resume,rank,world,device)
  log=open(out/f'metrics.rank{rank}.jsonl','a',buffering=1)
  def save(step):
-  saved_at=time.monotonic();save_checkpoint(model,optimizer,out,step,rank,world,device)
+  saved_at=time.monotonic();save_checkpoint(model,optimizer,out,step,rank,world,device,base_identity())
+  if rank==0:
+   export=audit_adapter(out/f'checkpoint-{step}'/'adapter');(out/f'checkpoint-{step}'/'adapter_audit.json').write_text(json.dumps(export,indent=2))
   if tracker:tracker.checkpoint(out/f'checkpoint-{step}',step,time.monotonic()-saved_at)
  t0=time.monotonic()
  for step in range(start,args.steps):
@@ -109,6 +118,8 @@ def main():
   if rank==0:print(json.dumps(metric),flush=True)
   if (step+1)%args.save_every==0 or step+1==args.steps:save(step+1)
  if args.smoke:
+  if rank==0:
+   frozen=audit_decoded(base);(out/'base_audit_after.json').write_text(json.dumps(frozen,indent=2))
   model.eval();short=min(rows,key=lambda x:len(x['input_ids']));ids=torch.tensor(short['input_ids'][:256],device=device).unsqueeze(0)
   with torch.no_grad():reference=model(input_ids=ids,logits_to_keep=1,use_cache=False).logits.detach()
   model.load_adapter(out/f'checkpoint-{args.steps}'/'adapter',adapter_name='roundtrip',is_trainable=False);model.set_adapter('roundtrip');model.eval()

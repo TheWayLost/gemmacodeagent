@@ -1,6 +1,6 @@
 # Version B: weighted-reasoning LoRA for repository-repair agents
 
-This package trains a text-only LoRA adapter on a frozen BF16 Gemma 4 31B QAT-unquantized base. It supports one 96GB GPU for validation and **2, 3, or 4 RTX PRO 6000 96GB GPUs** with DistributedDataParallel (DDP). It does not train the vision tower.
+This package trains a text-only LoRA adapter on the frozen deployment Gemma 4 31B W4A16 checkpoint, decoded to BF16 without recovering its pre-quantization values. It supports one 96GB GPU for validation and **2, 3, or 4 RTX PRO 6000 96GB GPUs** with DistributedDataParallel (DDP). It does not train the vision tower.
 
 **Run the single-card smoke test first.** Training correctness does not establish improved bug-fixing accuracy. Real hardware validation results and limitations are in `VALIDATION.md`.
 
@@ -18,7 +18,7 @@ The dataset is supplied through `DATASET_REPO` and `DATASET_REVISION` environmen
 
 Validated image: `runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404`, Python 3.12, PyTorch `2.8.0+cu128`, 96GB RTX PRO 6000 Blackwell Server Edition. Use a compatible NVIDIA driver and the CUDA 12.8 build of PyTorch; do not install an older CUDA build on Blackwell.
 
-Store downloads, prepared data, logs, and checkpoints on persistent storage. Allow roughly 70GB for the base cache plus space for data and checkpoints. Each retained checkpoint includes approximately 0.5GB of adapter weights plus optimizer state. A frozen full model is replicated on every GPU: this package is BF16 LoRA, not NF4 QLoRA and not tensor parallelism.
+Store downloads, prepared data, logs, and checkpoints on persistent storage. Allow roughly 25GB for the original W4 checkpoint cache plus space for data and checkpoints; decoded BF16 weights occupy GPU memory, not a second saved base checkpoint. Each retained checkpoint includes approximately 0.5GB of adapter weights plus optimizer state. A frozen full model is replicated on every GPU: this package is BF16 LoRA, not NF4 QLoRA and not tensor parallelism.
 
 ```bash
 cd training/weighted_reasoning_lora
@@ -34,7 +34,7 @@ export OMP_NUM_THREADS=1
 REV=$(python -c 'import json; print(json.load(open("revisions.json"))["model"]["revision"])')
 ```
 
-`bootstrap.sh` downloads the pinned model and data, prepares native-template weighted samples, and runs the numerical loss test. On an existing PyTorch image it preserves PyTorch and installs the pinned Python dependencies. It does not create cloud resources or delete data.
+`bootstrap.sh` downloads the pinned model and data, prepares native-template weighted samples, and runs the numerical loss test. It pins PyTorch 2.8.0 (CUDA 12.8 index), Transformers 5.20.2 and compressed-tensors 0.15.0. Do not upgrade compressed-tensors independently: newer releases require a different PyTorch stack. It does not create cloud resources or delete data.
 
 ## First: single-card training gate
 
@@ -46,7 +46,7 @@ CUDA_VISIBLE_DEVICES=0 python -u train.py \
   --smoke --save-every 1 2>&1 | tee "$TRAIN_ROOT/smoke.log"
 ```
 
-The smoke test selects the shortest, P95, and longest real training sequences, performs three optimizer steps, checks finite positive gradient norms and nonzero adapter updates, saves checkpoints, reloads the final adapter, and requires exactly matching evaluation logits. Success is an existing `SMOKE_PASS.json` with `passed: true`, not simply a running process or a falling loss on different samples. A failure must be fixed before the full job.
+The smoke test selects the longest real training sequence, performs one optimizer step, checks finite positive gradient norms and nonzero adapter updates, saves checkpoints, reloads the final adapter, and requires exactly matching evaluation logits. Success is an existing `SMOKE_PASS.json` with `passed: true`, not simply a running process or a falling loss on different samples. A failure must be fixed before the full job.
 
 Memory measures: microbatch size 1, non-reentrant gradient checkpointing, nested 2,048-token feed-forward checkpoint chunks, BF16 autocast, and selective completion logits. Prompt tokens still participate in attention but do not receive direct loss. Cross-entropy FP32 conversion is chunked. The first unchunked implementation exhausted memory on the longest sample; do not remove the memory measures casually.
 
@@ -120,7 +120,7 @@ This reloads optimizer and per-rank RNG state and reconstructs the deterministic
 
 W&B is opt-in. Each trainer logs in on their own machine and chooses their own account/team and project. **No API key, entity, project, or online run is embedded in this repository.** `requirements.txt` pins the tested SDK (`wandb==0.31.0`).
 
-First install dependencies using `bootstrap.sh` as above, or `python -m pip install -r requirements.txt`. Then use the normal W&B login workflow:
+First install dependencies using `bootstrap.sh` as above, or `python -m pip install --extra-index-url https://download.pytorch.org/whl/cu128 -r requirements.txt`. Then use the normal W&B login workflow:
 
 ```bash
 wandb login  # enter your own API key at the prompt
@@ -204,16 +204,40 @@ done
 
 References: [W&B Python run API](https://docs.wandb.ai/ref/python/experiments/run/) and [W&B SDK](https://github.com/wandb/wandb).
 
+## Original W4 deployment gate (after the one-step smoke)
+
+Training and inference use separate Python environments: training uses Torch 2.8.0 + compressed-tensors 0.15.0; the pinned competition wheelhouse v31 inference stack uses patched vLLM 0.19.1, Torch 2.10.0 and compressed-tensors 0.15.0.1. Do not install vLLM into the training environment. The setup script downloads the three patched wheels and verifies their SHA256; generic PyPI vLLM/Transformers wheels with the same version numbers are not substitutes for this gate.
+
+```bash
+bash setup_deployment_env.sh
+export HF_HOME=$TRAIN_ROOT/hf_cache
+export VLLM_WORKER_MULTIPROC_METHOD=spawn
+"$TRAIN_ROOT/envs/deployment/bin/python" validate_deployment.py \
+  --checkpoint "$TRAIN_ROOT/smoke/checkpoint-1" \
+  --output "$TRAIN_ROOT/deployment_gate"
+```
+
+Wait until training has exited and freed GPU memory. This gate serves the **original packed W4 weights**, loads the exported adapter through vLLM, compares no adapter against a zero-B control, and checks that the trained adapter changes raw next-token logits on two fixed prompts. It performs no optimizer updates. `deployment_gate.json` must report `passed: true`. It is an adapter loading/effect gate, not a repair benchmark, and does not guarantee identical BF16/W4 kernel logits or competition scores. Keep the fixed source revision and wheel hashes; revalidate if the deployment environment changes.
+
 ## Configuration and evaluation
 
 LoRA: rank 16, alpha 16, dropout 0.05; language-model q/k/v/o and gate/up/down projections; frozen base/embedding/output/vision weights. Optimizer: AdamW, learning rate 2e-5, weight decay 0.01, gradient clipping 1.0, constant learning rate, seed 42. This is a deliberately small, inspectable starting recipe, not an optimized hyperparameter search. `--steps` can cap a development run.
 
-The base is Google's QAT-unquantized half-precision release. It is not the compressed-tensors deployment checkpoint itself. A saved adapter's loading, parameter-name compatibility, tool serialization, and downstream quality must still be verified in the intended inference runtime. Do not claim that the training smoke test validates quantized deployment or improves agent success rate. The model and native-template choices are grounded in the [official model card](https://huggingface.co/google/gemma-4-31B-it-qat-q4_0-unquantized).
+The base is **the pinned deployment checkpoint** `google/gemma-4-31B-it-qat-w4a16-ct` at `52f3f65bc7a02d555763bc923bd1d9094898219d`. Bootstrap checks the complete weight file SHA256. `load_base` explicitly requests `CompressedTensorsConfig(dequantize=True)` and replaces decoded quantization wrappers with ordinary frozen BF16 Linear layers. This is INT4/group32 decoded into BF16 storage; it is **not** Google's pre-quantization QAT-unquantized model and is not NF4 QLoRA. Only LoRA A/B matrices receive gradients.
+
+Every rank loads the same W4 base. Rank 0 independently unpacks the first, middle and last rows of **every packed matrix**, compares them exactly to loaded BF16 values, and writes `base_audit.json`. The smoke test repeats this after training to check the sampled base values stayed frozen. This is a broad sampled weight check, not an exhaustive comparison of all elements. BF16 dense GEMMs and the W4 inference kernels may still differ numerically.
+
+Each checkpoint records `base_identity.json`. **Old QAT-unquantized checkpoints cannot be resumed by this version**, and checkpoints missing identity are rejected. Use a new output directory and run bootstrap again (or re-run preparation with the new revision). Old checkpoints and validation reports remain historical evidence; they do not validate this loader.
+
+The adapter export gate requires the original W4 model ID/revision, nonempty LoRA-only tensors and size below 3 GiB. Deploy only `checkpoint-N/adapter/`; optimizer and RNG files are for training recovery. Do not merge the adapter into a dense base and re-quantize it for an adapter-only deployment. Do not substitute TeichAI, an unquantized ancestor, or another quantizer as the frozen base.
+
+Run `python test_w4_contract.py` before training. The original W4-plus-adapter inference gate described below is also required before a full training job or downstream evaluation. See `VALIDATION.md` for what has actually been tested.
 
 For model selection, compare frozen base and adapter under identical tools, timeout, thinking configuration, compaction, task order and generation sampling. Use held-out tasks and multiple seeds for close comparisons; never train on those evaluation tasks. Report task resolution rate, runtime, output/reasoning tokens, tool-call failures and timeout rate. Teacher-forcing loss alone is insufficient. This package deliberately does not launch an expensive downstream benchmark automatically.
 
 ## Files
 
+- `base_loading.py`, `validate_w4.py`, `test_w4_contract.py`: exact-source guards, W4 decoding audit, adapter export checks.
 - `prepare.py`: native-template conversion and per-token weights; rejects truncation.
 - `train.py`: single-card/DDP training, memory controls, checkpoints, smoke gate.
 - `tracking.py`: optional W&B setup, metrics, and run-resume metadata.

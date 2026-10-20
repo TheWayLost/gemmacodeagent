@@ -1,4 +1,36 @@
-# Validation record — 2026-10-20 UTC
+# Current W4-aligned validation — 2026-10-20 UTC
+
+The default training base is now the **original deployment W4A16 checkpoint decoded to BF16**, not its QAT-unquantized ancestor. The records below this section describing the old base are historical only.
+
+On one NVIDIA RTX PRO 6000 Blackwell Server Edition (97,887 MiB; driver 595.91.07), with Torch 2.8.0+cu128, Transformers 5.20.2, compressed-tensors 0.15.0 and PEFT 0.21.2:
+
+- The full original `model.safetensors` SHA256 matched the pinned deployment file.
+- Independently unpacked 10,268,160 sampled values (first/middle/last rows of all 410 packed matrices). Every value exactly matched the decoded BF16 model, both before and after training.
+- **Exactly one optimizer step** on the longest real training sequence: 19,825 tokens; weighted loss 0.9738829; gradient norm 1.9802240; checked LoRA update 1.999987e-5; step time 79.224 s; peak allocated memory 82.387 GiB.
+- Only LoRA A/B parameters were trainable. The exported adapter has 820 nonempty tensors, rank 16, and weighs 489,840,816 bytes. Its base ID/revision refer to the original W4 checkpoint. No full base weights are exported.
+- Saved-adapter reload on the decoded base produced maximum absolute logit difference **0.0**. Training/save/frozen-base-audit/reload took 188.584 s, excluding loading and the initial base audit.
+- Actual GPU training also wrote W&B offline metrics successfully; no online account/key was used.
+- Three CPU source/resume/INT4 contract tests passed; two-rank CPU checkpoint identity/optimizer/RNG recovery passed; four W&B tests passed. The native-template test passed against the pinned W4 tokenizer.
+
+Evidence: `validation/w4_smoke.json` and `validation/w4_preparation.json`. This single-step test establishes pipeline correctness, not repair accuracy. Actual 2–4 GPU training remains untested; the unchanged DDP training path and CPU tests do not establish multi-GPU throughput.
+
+## Original W4 plus LoRA inference gate
+
+Passed on the same PRO 6000, with original packed W4 weights and the competition wheelhouse v31 patched vLLM 0.19.1 / Transformers 5.13.1 / compressed-tensors 0.15.0.1, Torch 2.10.0+cu128, huggingface_hub 1.16.1, flashinfer 0.6.6. The original W4 used the MarlinLinearKernel; it was not replaced by dense BF16 inference.
+
+On two fixed prompts, one next token each, with `logprobs_mode="raw_logits"`:
+
+- No adapter versus a zero-B LoRA control: maximum raw-logit difference **0.0** over shared returned top-20 token IDs.
+- Zero-B control versus the actual one-step LoRA: maximum raw-logit difference **0.25** over shared returned top-20 token IDs.
+- Both adapter requests completed, and the process exited 0. No additional optimizer updates or repository-repair evaluation were performed.
+
+Evidence: `validation/w4_deployment_gate.json`. This proves adapter loading and a nonzero numerical effect on the original W4 runtime. It does not establish task-quality improvement, full-vocabulary logit equivalence, or a 4xL4 competition run. The gate used a 32,768 context configuration with short prompts.
+
+An initial environment attempt failed because the same-numbered PyPI Transformers wheel lacks the competition patches; a subsequent attempt exposed a huggingface_hub version mismatch. `setup_deployment_env.sh` now pins the compatible Hub version and verifies/explicitly installs all three patched wheels by SHA256. The training environment is kept separate.
+
+---
+
+# Historical QAT-unquantized validation — 2026-10-20 UTC
 
 One NVIDIA RTX PRO 6000 Blackwell Server Edition (97,887 MiB reported by nvidia-smi), CUDA driver 595.91.07, PyTorch 2.8.0+cu128. BF16 base, LoRA rank/alpha 16, dropout 0.05, 122,429,440 trainable parameters (0.3900% of the loaded 31,395,515,952 parameters).
 

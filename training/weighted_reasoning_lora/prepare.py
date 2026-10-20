@@ -40,7 +40,7 @@ def encode(t,row,max_length=24576):
  return dict(sample_id=row['sample_id'],task_id=row['task_id'],input_ids=enc['input_ids'],weights=weights,prompt_tokens=sum(w==0 for w in weights),reasoning_tokens=weights.count(.25),action_tokens=weights.count(1.))
 
 def main():
- ap=argparse.ArgumentParser();ap.add_argument('--data',required=True);ap.add_argument('--output',required=True);ap.add_argument('--model',default='google/gemma-4-31B-it-qat-q4_0-unquantized');ap.add_argument('--revision',required=True);ap.add_argument('--max-length',type=int,default=24576);args=ap.parse_args()
+ ap=argparse.ArgumentParser();ap.add_argument('--data',required=True);ap.add_argument('--output',required=True);ap.add_argument('--model',default='google/gemma-4-31B-it-qat-w4a16-ct');ap.add_argument('--revision',required=True);ap.add_argument('--max-length',type=int,default=24576);args=ap.parse_args()
  t=AutoTokenizer.from_pretrained(args.model,revision=args.revision);out=pathlib.Path(args.output);out.mkdir(parents=True,exist_ok=True);stats={}
  for split in ['train','validation']:
   n=0;lengths=[];excluded=[]

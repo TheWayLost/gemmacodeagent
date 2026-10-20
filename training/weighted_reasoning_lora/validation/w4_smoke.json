@@ -1,0 +1,59 @@
+{
+  "passed": true,
+  "steps": 1,
+  "world_size": 1,
+  "reload_max_abs_logit_difference": 0.0,
+  "elapsed_seconds": 188.58424195599946,
+  "longest_real_sequence": 19825,
+  "note": "Optimization correctness only; no downstream quality claim.",
+  "metric": {
+    "step": 1,
+    "loss": 0.9738829135894775,
+    "gradient_norm": 1.9802240133285522,
+    "adapter_delta_max": 1.999987034650985e-05,
+    "seconds": 79.22411898000428,
+    "peak_allocated_gib": 82.3873462677002,
+    "lengths": [
+      19825
+    ]
+  },
+  "base_before": {
+    "passed": true,
+    "model": "google/gemma-4-31B-it-qat-w4a16-ct",
+    "revision": "52f3f65bc7a02d555763bc923bd1d9094898219d",
+    "weight_sha256": "1b9b1d622a93f02c0d33f98e502f233b5d707443af6ddc464ed0bf5498506c20",
+    "base_loading": "dequantize_w4_to_bf16_v1",
+    "decoded_layers": 410,
+    "sampled_values": 10268160,
+    "max_abs_difference": 0.0,
+    "scope": "First, middle and last output rows of every packed matrix; not exhaustive elementwise or kernel equivalence."
+  },
+  "base_after": {
+    "passed": true,
+    "model": "google/gemma-4-31B-it-qat-w4a16-ct",
+    "revision": "52f3f65bc7a02d555763bc923bd1d9094898219d",
+    "weight_sha256": "1b9b1d622a93f02c0d33f98e502f233b5d707443af6ddc464ed0bf5498506c20",
+    "base_loading": "dequantize_w4_to_bf16_v1",
+    "decoded_layers": 410,
+    "sampled_values": 10268160,
+    "max_abs_difference": 0.0,
+    "scope": "First, middle and last output rows of every packed matrix; not exhaustive elementwise or kernel equivalence."
+  },
+  "adapter": {
+    "passed": true,
+    "tensor_count": 820,
+    "weight_bytes": 489840816,
+    "rank": 16,
+    "base_model": "google/gemma-4-31B-it-qat-w4a16-ct",
+    "revision": "52f3f65bc7a02d555763bc923bd1d9094898219d"
+  },
+  "wandb_mode": "offline",
+  "training_stack": {
+    "torch": "2.8.0+cu128",
+    "transformers": "5.20.2",
+    "compressed_tensors": "0.15.0",
+    "peft": "0.21.2"
+  },
+  "gpu": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "driver": "595.91.07"
+}
