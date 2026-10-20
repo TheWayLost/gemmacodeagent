@@ -1,0 +1,6 @@
+{
+  "model": {
+    "repo_id": "google/gemma-4-31B-it-qat-q4_0-unquantized",
+    "revision": "1e4d8beecacb8b7590c1d8bedd7335f687bf311f"
+  }
+}

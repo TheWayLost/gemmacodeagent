@@ -1,0 +1,3 @@
+{"step": 1, "loss": 1.5930956602096558, "gradient_norm": 1.222410798072815, "adapter_delta_max": 1.999971027544234e-05, "seconds": 1.717248824890703, "peak_allocated_gib": 60.57034158706665, "lengths": [1139]}
+{"step": 2, "loss": 1.900429368019104, "gradient_norm": 2.7333898544311523, "adapter_delta_max": 2.0025430785608478e-05, "seconds": 51.20340872602537, "peak_allocated_gib": 77.54206562042236, "lengths": [15048]}
+{"step": 3, "loss": 0.9617070555686951, "gradient_norm": 1.1191487312316895, "adapter_delta_max": 2.0063071133336052e-05, "seconds": 78.76342283282429, "peak_allocated_gib": 83.2995171546936, "lengths": [19825]}

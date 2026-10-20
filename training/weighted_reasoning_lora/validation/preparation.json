@@ -1,0 +1,23 @@
+{
+  "train": {
+    "samples": 2951,
+    "tokens": 26915299,
+    "min": 1139,
+    "p50": 8817,
+    "p95": 15055,
+    "max": 19825,
+    "excluded": []
+  },
+  "validation": {
+    "samples": 216,
+    "tokens": 1791555,
+    "min": 2331,
+    "p50": 8106,
+    "p95": 13976,
+    "max": 15262,
+    "excluded": []
+  },
+  "model": "google/gemma-4-31B-it-qat-q4_0-unquantized",
+  "revision": "1e4d8beecacb8b7590c1d8bedd7335f687bf311f",
+  "template_sha256": "ae53464bf3be25802b3a5b37def7fd89667067d7577049b3b2d74c4d8de4c6d4"
+}

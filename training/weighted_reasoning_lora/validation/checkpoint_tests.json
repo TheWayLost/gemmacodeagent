@@ -1,0 +1,34 @@
+[
+  {
+    "passed": true,
+    "world_size": 1,
+    "per_rank_rng_roundtrip": true,
+    "optimizer_roundtrip": true,
+    "world_size_mismatch_rejected": true,
+    "completion_marker": true
+  },
+  {
+    "passed": true,
+    "world_size": 2,
+    "per_rank_rng_roundtrip": true,
+    "optimizer_roundtrip": true,
+    "world_size_mismatch_rejected": true,
+    "completion_marker": true
+  },
+  {
+    "passed": true,
+    "world_size": 3,
+    "per_rank_rng_roundtrip": true,
+    "optimizer_roundtrip": true,
+    "world_size_mismatch_rejected": true,
+    "completion_marker": true
+  },
+  {
+    "passed": true,
+    "world_size": 4,
+    "per_rank_rng_roundtrip": true,
+    "optimizer_roundtrip": true,
+    "world_size_mismatch_rejected": true,
+    "completion_marker": true
+  }
+]
