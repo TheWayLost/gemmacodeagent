@@ -30,3 +30,12 @@ See machine-readable evidence in `validation/`.
 Physical 2-4-GPU and multi-host runs have **not** been performed. CPU distributed tests establish normalization correctness, not NCCL behavior or throughput. Multi-rank checkpoint/resume code is provided; it has not been validated by a real multi-GPU training restart. The GPU smoke run preceded the addition of per-rank RNG checkpoint files; that addition leaves the tested forward/loss/backward core unchanged.
 
 No held-out repair benchmark or submission-score comparison has been run with this three-step adapter. It is a pipeline verification artifact, not a trained production model. Compressed-tensors inference compatibility and model quality require separate validation. The base is the QAT-unquantized checkpoint, not numerically identical to a quantized deployment checkpoint.
+
+
+## W&B integration validation — 2026-10-20 UTC
+
+The monitoring update was checked separately on a CPU pod, using the real pinned W&B SDK 0.31.0. `test_tracking.py` passed all four tests: disabled/default configuration, allowlisted config and online resume/account-switch policy with a fake backend, metric aggregation/ETA, and a real offline run whose persisted journal contains the logged loss and exit status. No online account or API key was used.
+
+`test_tracking_distributed.py` passed with 2, 3, and 4 real CPU/Gloo ranks, exercising the production `gather_rank_stats` helper. Synthetic global token counts were 300, 600, and 1,000 respectively; every rank's memory statistics were retained. This verifies aggregation, not GPU performance or NCCL. Python compilation and `git diff --check` passed.
+
+The earlier single-GPU training smoke predates this monitoring integration. Online authentication/upload and end-to-end multi-GPU training with W&B have not been tested. Each trainer should configure their own account and verify their run URL during the smoke test.

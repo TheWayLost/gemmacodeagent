@@ -116,6 +116,94 @@ torchrun --standalone --nproc_per_node=3 train.py \
 
 This reloads optimizer and per-rank RNG state and reconstructs the deterministic sampler position. It rejects a different world size. Do not resume from an incomplete checkpoint or an adapter-only download. Reproducibility across different CUDA/library/hardware versions is not guaranteed. The smoke checkpoints from the initial memory debugging run are evidence artifacts, not recommended starting points for a full training run.
 
+## W&B monitoring: configure your own account
+
+W&B is opt-in. Each trainer logs in on their own machine and chooses their own account/team and project. **No API key, entity, project, or online run is embedded in this repository.** `requirements.txt` pins the tested SDK (`wandb==0.31.0`).
+
+First install dependencies using `bootstrap.sh` as above, or `python -m pip install -r requirements.txt`. Then use the normal W&B login workflow:
+
+```bash
+wandb login  # enter your own API key at the prompt
+# If this machine is already logged into another account: wandb login --relogin
+export WANDB_ENTITY="your-user-or-team"  # optional: omit for your login's default entity
+export WANDB_PROJECT="repo-agent-lora"
+export WANDB_NAME="lora-b-2gpu-seed42"
+export WANDB_MODE=online
+```
+
+For a team project, your W&B account needs permission to write to that team. The entity is the user/team slug, not an email address. In containers or CI, inject your own `WANDB_API_KEY` through the platform secret manager instead of interactive login. A shell alternative that does not put the value in command history is:
+
+```bash
+read -rsp 'W&B API key: ' WANDB_API_KEY; echo
+export WANDB_API_KEY
+```
+
+Do not put keys in a training script, README, Git commit, or shared `.env` file. The training CLI deliberately has no `--wandb-api-key` argument.
+
+Start training with the existing commands; the environment variables above enable monitoring automatically:
+
+```bash
+set -o pipefail
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export OMP_NUM_THREADS=1
+REV=$(python -c 'import json; print(json.load(open("revisions.json"))["model"]["revision"])')
+torchrun --standalone --nproc_per_node=2 train.py \
+  --data "$TRAIN_ROOT/tokenized/train.jsonl" \
+  --output "$TRAIN_ROOT/lora-b-2gpu" --revision "$REV" \
+  --accum 4 --lr 2e-5 --save-every 50 \
+  2>&1 | tee "$TRAIN_ROOT/lora-b-2gpu.log"
+```
+
+The terminal prints the W&B run URL. It is also saved in `<output>/wandb_run.json`. You can instead pass `--wandb-mode online --wandb-project PROJECT --wandb-entity ENTITY --wandb-name NAME`. CLI options override environment variables. If neither `WANDB_MODE` nor `WANDB_PROJECT` is configured, monitoring defaults to disabled. A project supplied only by CLI should also specify `--wandb-mode online`.
+
+### What appears in the dashboard
+
+- Global weighted training loss, pre-clipping gradient norm, learning rate, and checked adapter update magnitude.
+- Optimizer step, total steps, progress percentage, approximate epoch fraction, elapsed training time, and ETA.
+- Global sequence tokens/second and decisions/second, completion/reasoning/action token counts, and maximum sequence length per optimizer step.
+- Every rank's peak allocated/reserved GPU memory and the slowest rank's compute duration.
+- Last saved checkpoint step, checkpoint-save duration, and training exit status.
+
+Use `train/optimizer_step` as the chart X axis. Metrics are logged once per optimizer update, not once per accumulation microbatch. Sequence throughput includes repeated prompt history and is **not** teacher-output throughput. ETA is estimated from completed steps in the current session and becomes more reliable after multiple steps; it excludes initial model loading and future evaluations. Epoch fraction can slightly exceed 1 due to distributed sampler padding. W&B's automatic system monitoring covers the rank-0 host; explicit per-rank peak-memory metrics cover all participating hosts.
+
+Only rank 0 creates a W&B run. Other ranks contribute numerical statistics through a collective; they do not need separate logins. On multiple hosts, all ranks must run the same updated code. Logging configuration is coordinated from rank 0, including initialization failures. Existing `metrics.rankN.jsonl` files remain available. The loss/optimizer recipe is unchanged. No dataset text, thinking text, sample IDs, model weights, checkpoints, Git metadata, or console transcript is explicitly uploaded by this integration; scalar metrics, selected hyperparameters and SDK system telemetry are sent. Model artifact upload is disabled by omission.
+
+These are training metrics. Validation loss and bug-fixing accuracy are **not** computed automatically.
+
+### Resume, switch accounts, or work offline
+
+For an online run, use the same `--output`, project/entity and the existing `--resume .../checkpoint-N` option. The saved W&B ID is reused with `resume="must"`; checkpoint folders also contain `wandb_run.json`. If you resume a checkpoint created before W&B was enabled, a new run starts at the restored optimizer step. `WANDB_RUN_ID` / `--wandb-id` can explicitly identify an existing online run when local metadata is unavailable.
+
+If a collaborator uses another account/project, or you want a separate comparison run while resuming model weights, add **`--wandb-new-run`** and choose their own entity/project. Do not reuse someone else's `WANDB_RUN_ID`. Resuming an older checkpoint into the same run preserves previously logged history; use a new run when you want a clean branch of the experiment.
+
+For offline tracking:
+
+```bash
+export WANDB_MODE=offline
+export WANDB_PROJECT="repo-agent-lora"
+# Run the same training command. Logs are kept under <output>/wandb/.
+# Later, log in with the intended account and sync each offline directory:
+wandb login
+wandb sync --entity "your-user-or-team" --project "repo-agent-lora" \
+  "$TRAIN_ROOT/lora-b-2gpu/wandb/offline-run-YYYYMMDD_HHMMSS-RUNID"
+```
+
+The SDK does not support resuming an offline run in place. Each offline training restart creates a separate monitoring segment with its own ID; syncing these segments does not automatically join their histories. To move from offline to an online training continuation, add `--wandb-new-run` and sync the old logs separately.
+
+Set `WANDB_MODE=disabled` or pass `--wandb-mode disabled` to turn monitoring off. Do not set dummy API keys.
+
+Run `python test_tracking.py` before a long job. It uses a fake backend for online resume/account-switch cases and a real offline SDK for persisted metric checks; it requires no GPU or online account. Cloud authentication and real multi-GPU logging must be checked by the trainer with their own account.
+
+The production statistics-gathering helper can also be checked on CPUs:
+
+```bash
+for N in 2 3 4; do
+  OMP_NUM_THREADS=1 torchrun --standalone --nproc_per_node=$N test_tracking_distributed.py
+done
+```
+
+References: [W&B Python run API](https://docs.wandb.ai/ref/python/experiments/run/) and [W&B SDK](https://github.com/wandb/wandb).
+
 ## Configuration and evaluation
 
 LoRA: rank 16, alpha 16, dropout 0.05; language-model q/k/v/o and gate/up/down projections; frozen base/embedding/output/vision weights. Optimizer: AdamW, learning rate 2e-5, weight decay 0.01, gradient clipping 1.0, constant learning rate, seed 42. This is a deliberately small, inspectable starting recipe, not an optimized hyperparameter search. `--steps` can cap a development run.
@@ -128,6 +216,8 @@ For model selection, compare frozen base and adapter under identical tools, time
 
 - `prepare.py`: native-template conversion and per-token weights; rejects truncation.
 - `train.py`: single-card/DDP training, memory controls, checkpoints, smoke gate.
+- `tracking.py`: optional W&B setup, metrics, and run-resume metadata.
+- `test_tracking.py`, `test_tracking_distributed.py`: offline SDK, resume policy, and CPU distributed monitoring tests.
 - `test_weighting.py`: causal-loss weighting and distributed normalization tests.
 - `test_template.py`: native-template target-mask tests.
 - `bootstrap.sh`, `requirements.txt`, `revisions.json`: reproducible setup.
