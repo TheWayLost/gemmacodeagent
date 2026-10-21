@@ -1,3 +1,5 @@
+> **2026-10-21 regression audit:** the epoch-1 adapter solved 5/20 versus the base 11/20 on our paired development evaluation. Read [REMEDIATION.md](REMEDIATION.md) before retraining: it includes audited data counts, conservative curation, task-balanced objectives, short-run checkpoint gates, and 2-4 GPU commands. These changes have not yet demonstrated better repair accuracy.
+
 # Version B: weighted-reasoning LoRA for repository-repair agents
 
 This package trains a text-only LoRA adapter on the frozen deployment Gemma 4 31B W4A16 checkpoint, decoded to BF16 without recovering its pre-quantization values. It supports one 96GB GPU for validation and **2, 3, or 4 RTX PRO 6000 96GB GPUs** with DistributedDataParallel (DDP). It does not train the vision tower.
@@ -8,9 +10,9 @@ This package trains a text-only LoRA adapter on the frozen deployment Gemma 4 31
 
 For each model decision, the prompt is the recorded model-visible history (including runtime compaction and tool responses), and the only supervised completion is the current assistant response. The pinned native Gemma template serializes tool calls and thinking channels. Tool arguments are parsed into objects before rendering.
 
-Token weights are **0 for prompt/history/tool outputs, 0.25 for thinking text, and 1 for the current assistant's action/content and protocol delimiters**. The causal shift is applied explicitly. The objective is `sum(weight * cross_entropy) / sum(weight)` over all ranks and all microbatches in the optimizer step. DDP's gradient averaging is compensated by the world-size factor; averaging separately normalized per-rank losses would be incorrect for unequal completion lengths.
+Token weights are **0 for prompt/history/tool outputs, 0.25 for thinking text, and 1 for the current assistant's action/content and protocol delimiters**. The causal shift is applied explicitly. The legacy `--objective token_mean` objective is `sum(weight * cross_entropy) / sum(weight)` over all ranks and all microbatches in the optimizer step. DDP's gradient averaging is compensated by the world-size factor; averaging separately normalized per-rank losses would be incorrect for unequal completion lengths. The new `--objective task_mean` instead averages within each decision and task; see REMEDIATION.md for the formula and controlled comparisons. Standalone compaction targets are excluded by default; summaries already in repair history remain visible.
 
-The dataset is supplied through `DATASET_REPO` and `DATASET_REVISION` environment variables; no dataset identity is embedded in this public package. The raw release contains 332 attempts / 305 tasks. Only 200 test-verified successful trajectories feed the SFT views: **180 training tasks (2,951 decisions)** and **20 validation tasks (216 decisions)**. Test success is not exhaustive semantic review. Failed attempts and truncated responses remain available in the raw release but are not positive SFT targets. Never split individual decisions from the same task across train/validation.
+The dataset is supplied through `DATASET_REPO` and `DATASET_REVISION` environment variables; pin the full dataset commit before processing. The raw release contains 332 attempts / 305 tasks. Only 200 test-verified successful trajectories feed the SFT views: **180 training tasks (2,951 decisions)** and **20 validation tasks (216 decisions)**. The current default curation retains **2,841 training decisions and 214 validation decisions**, excluding 109/2 standalone compaction targets and one invalid training edit. The original release remains intact. Test success is not exhaustive semantic review. Failed attempts and truncated responses remain available in the raw release but are not positive SFT targets. Never split individual decisions from the same task across train/validation.
 
 `revisions.json` pins the model commit. Supply the full dataset commit SHA through `DATASET_REVISION`; bootstrap records both revisions in `run_revisions.json`. `prepare.py` refuses silently truncated examples: overlength or malformed examples are recorded in `preparation.json`. With the pinned release, all 3,167 eligible decisions fit the 24,576-token preparation ceiling; the longest training example is 19,825 tokens. This ceiling is **not a claim that arbitrary 24K examples fit in memory**.
 
@@ -24,7 +26,7 @@ Store downloads, prepared data, logs, and checkpoints on persistent storage. All
 cd training/weighted_reasoning_lora
 export DATASET_REPO="YOUR_NAMESPACE/YOUR_DATASET"
 export DATASET_REVISION="FULL_DATASET_COMMIT_SHA"
-export TRAIN_ROOT=/workspace/weighted_reasoning_lora
+export TRAIN_ROOT=/workspace/weighted_reasoning_lora_v2
 export HF_HOME=$TRAIN_ROOT/hf_cache
 # If model access needs authentication, set HF_TOKEN through your secret manager.
 # Do not put a token in a command committed to Git.
@@ -34,7 +36,7 @@ export OMP_NUM_THREADS=1
 REV=$(python -c 'import json; print(json.load(open("revisions.json"))["model"]["revision"])')
 ```
 
-`bootstrap.sh` downloads the pinned model and data, prepares native-template weighted samples, and runs the numerical loss test. It pins PyTorch 2.8.0 (CUDA 12.8 index), Transformers 5.20.2 and compressed-tensors 0.15.0. Do not upgrade compressed-tensors independently: newer releases require a different PyTorch stack. It does not create cloud resources or delete data.
+`bootstrap.sh` downloads the pinned model and data, audits and curates decisions, excludes standalone compaction targets, prepares native-template weighted samples, and runs numerical checks. Use a fresh TRAIN_ROOT; existing curation outputs are not overwritten. It pins PyTorch 2.8.0 (CUDA 12.8 index), Transformers 5.20.2 and compressed-tensors 0.15.0. Do not upgrade compressed-tensors independently: newer releases require a different PyTorch stack. It does not create cloud resources or delete data.
 
 ## First: single-card training gate
 
@@ -43,7 +45,7 @@ set -o pipefail
 CUDA_VISIBLE_DEVICES=0 python -u train.py \
   --data "$TRAIN_ROOT/tokenized/train.jsonl" \
   --output "$TRAIN_ROOT/smoke" --revision "$REV" \
-  --smoke --save-every 1 2>&1 | tee "$TRAIN_ROOT/smoke.log"
+  --objective task_mean --smoke --save-every 1 2>&1 | tee "$TRAIN_ROOT/smoke.log"
 ```
 
 The smoke test selects the longest real training sequence, performs one optimizer step, checks finite positive gradient norms and nonzero adapter updates, saves checkpoints, reloads the final adapter, and requires exactly matching evaluation logits. Success is an existing `SMOKE_PASS.json` with `passed: true`, not simply a running process or a falling loss on different samples. A failure must be fixed before the full job.
@@ -57,10 +59,11 @@ Run the distributed numerical gate first. This compares the distributed weighted
 ```bash
 for N in 2 3 4; do
   OMP_NUM_THREADS=1 torchrun --standalone --nproc_per_node=$N test_weighting.py
+  OMP_NUM_THREADS=1 torchrun --standalone --nproc_per_node=$N test_task_objective_distributed.py
 done
 ```
 
-Then launch a full epoch. `--steps 0` (default) computes the number of optimizer steps to cover the data. The last distributed batch may repeat a few examples to keep ranks synchronized.
+Then run **25 steps and evaluate the early checkpoints against the base** before continuing. `--steps 0` remains available for explicit full-epoch reproduction; it is not the recommended first run. The last distributed batch may repeat a few examples to keep ranks synchronized.
 
 ```bash
 N=3  # set to 2, 3, or 4
@@ -69,7 +72,7 @@ set -o pipefail
 torchrun --standalone --nproc_per_node=$N train.py \
   --data "$TRAIN_ROOT/tokenized/train.jsonl" \
   --output "$TRAIN_ROOT/lora-b-${N}gpu" --revision "$REV" \
-  --accum "$ACCUM" --lr 2e-5 --save-every 50 \
+  --objective task_mean --steps 25 --accum "$ACCUM" --lr 2e-5 --save-every 5 \
   2>&1 | tee "$TRAIN_ROOT/lora-b-${N}gpu.log"
 ```
 
@@ -98,7 +101,7 @@ torchrun --nnodes="$NNODES" --nproc_per_node=1 \
   --node_rank="$NODE_RANK" --master_addr="$MASTER_ADDR" \
   --master_port="$MASTER_PORT" train.py \
   --data "$TRAIN_ROOT/tokenized/train.jsonl" \
-  --output "$SHARED_OUTPUT" --revision "$REV" --accum 4
+  --output "$SHARED_OUTPUT" --revision "$REV" --accum 4 --objective task_mean --steps 25 --save-every 5
 ```
 
 The same shared output path must be visible on every host. Without shared output storage, use a single multi-GPU host for this version. Multi-host operation and NCCL networking are implemented through standard torchrun/DDP but were not physically tested in this validation. DDP synchronizes only trainable adapter gradients, yet slow networking can still limit throughput.
@@ -111,10 +114,10 @@ Each checkpoint contains `adapter/`, `training_state.pt`, and `rng.rankN.pt` for
 torchrun --standalone --nproc_per_node=3 train.py \
   --data "$TRAIN_ROOT/tokenized/train.jsonl" \
   --output "$TRAIN_ROOT/lora-b-3gpu" --revision "$REV" --accum 4 \
-  --resume "$TRAIN_ROOT/lora-b-3gpu/checkpoint-50"
+  --objective task_mean --steps 50 --resume "$TRAIN_ROOT/lora-b-3gpu/checkpoint-25"
 ```
 
-This reloads optimizer and per-rank RNG state and reconstructs the deterministic sampler position. It rejects a different world size. Do not resume from an incomplete checkpoint or an adapter-only download. Reproducibility across different CUDA/library/hardware versions is not guaranteed. The smoke checkpoints from the initial memory debugging run are evidence artifacts, not recommended starting points for a full training run.
+Resume requires matching training_manifest.json (data, objective, code and optimizer settings); legacy runs without it must use their original code. This reloads optimizer and per-rank RNG state and reconstructs the deterministic sampler position. It rejects a different world size. Do not resume from an incomplete checkpoint or an adapter-only download. Reproducibility across different CUDA/library/hardware versions is not guaranteed. The smoke checkpoints from the initial memory debugging run are evidence artifacts, not recommended starting points for a full training run.
 
 ## W&B monitoring: configure your own account
 
@@ -150,7 +153,7 @@ REV=$(python -c 'import json; print(json.load(open("revisions.json"))["model"]["
 torchrun --standalone --nproc_per_node=2 train.py \
   --data "$TRAIN_ROOT/tokenized/train.jsonl" \
   --output "$TRAIN_ROOT/lora-b-2gpu" --revision "$REV" \
-  --accum 4 --lr 2e-5 --save-every 50 \
+  --objective task_mean --steps 25 --accum 4 --lr 2e-5 --save-every 5 \
   2>&1 | tee "$TRAIN_ROOT/lora-b-2gpu.log"
 ```
 
@@ -166,7 +169,7 @@ The terminal prints the W&B run URL. It is also saved in `<output>/wandb_run.jso
 
 Use `train/optimizer_step` as the chart X axis. Metrics are logged once per optimizer update, not once per accumulation microbatch. Sequence throughput includes repeated prompt history and is **not** teacher-output throughput. ETA is estimated from completed steps in the current session and becomes more reliable after multiple steps; it excludes initial model loading and future evaluations. Epoch fraction can slightly exceed 1 due to distributed sampler padding. W&B's automatic system monitoring covers the rank-0 host; explicit per-rank peak-memory metrics cover all participating hosts.
 
-Only rank 0 creates a W&B run. Other ranks contribute numerical statistics through a collective; they do not need separate logins. On multiple hosts, all ranks must run the same updated code. Logging configuration is coordinated from rank 0, including initialization failures. Existing `metrics.rankN.jsonl` files remain available. The loss/optimizer recipe is unchanged. No dataset text, thinking text, sample IDs, model weights, checkpoints, Git metadata, or console transcript is explicitly uploaded by this integration; scalar metrics, selected hyperparameters and SDK system telemetry are sent. Model artifact upload is disabled by omission.
+Only rank 0 creates a W&B run. Other ranks contribute numerical statistics through a collective; they do not need separate logins. On multiple hosts, all ranks must run the same updated code. Logging configuration is coordinated from rank 0, including initialization failures. Existing `metrics.rankN.jsonl` files remain available. Monitoring does not alter the selected loss/optimizer recipe. Loss values from token_mean and task_mean are different objectives and should not be directly compared. No dataset text, thinking text, sample IDs, model weights, checkpoints, Git metadata, or console transcript is explicitly uploaded by this integration; scalar metrics, selected hyperparameters and SDK system telemetry are sent. Model artifact upload is disabled by omission.
 
 These are training metrics. Validation loss and bug-fixing accuracy are **not** computed automatically.
 

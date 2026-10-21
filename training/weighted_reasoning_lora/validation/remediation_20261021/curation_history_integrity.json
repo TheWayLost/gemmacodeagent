@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "splits": {
+    "train": {
+      "kept": 2950,
+      "original": 2951,
+      "original_fields_unchanged": true
+    },
+    "validation": {
+      "kept": 216,
+      "original": 216,
+      "original_fields_unchanged": true
+    }
+  }
+}

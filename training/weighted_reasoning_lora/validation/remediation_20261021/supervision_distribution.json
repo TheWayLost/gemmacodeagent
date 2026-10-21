@@ -1,0 +1,28 @@
+{
+  "data_sha256": "3409af89ccf876d900cb18ac8eb7e7f43f567b73a3ae2ee388c3cb6cbfbe6419",
+  "tokenized_sha256": "13c14e61a1656089bde77589bed71d9490f3a9612f3ff2b28f56053d8639946f",
+  "totals": {
+    "rows": 2951,
+    "weighted_tokens": 442992.0,
+    "reasoning_tokens": 508448,
+    "action_tokens": 315880
+  },
+  "tasks": 180,
+  "top_decile_task_count": 18,
+  "top_decile_weighted_token_fraction": 0.36778429407303065,
+  "request_kinds": {
+    "agent": {
+      "rows": 2842,
+      "weighted_tokens": 393140.25,
+      "reasoning_tokens": 482945,
+      "action_tokens": 272404
+    },
+    "compaction": {
+      "rows": 109,
+      "weighted_tokens": 49851.75,
+      "reasoning_tokens": 25503,
+      "action_tokens": 43476
+    }
+  },
+  "raw_rows_without_tokenized_example": 0
+}

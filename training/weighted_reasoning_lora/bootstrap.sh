@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")"
-ROOT=${TRAIN_ROOT:-/workspace/weighted_reasoning_lora}
+ROOT=${TRAIN_ROOT:-/workspace/weighted_reasoning_lora_v2}
 : "${DATASET_REPO:?Set DATASET_REPO to your authorized HF dataset}"
 : "${DATASET_REVISION:?Set DATASET_REVISION to a full dataset commit SHA}"
 mkdir -p "$ROOT"
@@ -20,8 +20,13 @@ for kind in ['model','dataset']:
 PY
 REV=$(python -c 'import json;print(json.load(open("revisions.json"))["model"]["revision"])')
 python -c 'from base_loading import verify_source_hash; print(verify_source_hash())'
-python prepare.py --data "$ROOT/dataset" --output "$ROOT/tokenized" --revision "$REV"
+python curate.py --data "$ROOT/dataset" --output "$ROOT/curated"
+python prepare.py --data "$ROOT/curated" --output "$ROOT/tokenized" --revision "$REV"
+python test_curation.py
+python test_objectives.py
+python test_quality_gate.py
+python test_provenance.py
 python test_weighting.py
 python test_template.py
 python test_w4_contract.py
-printf 'Ready. Run the single-card smoke test in README.md before a full job.\n'
+printf 'Ready. Run the single-card smoke test in README.md before a short checkpoint-gated experiment.\n'

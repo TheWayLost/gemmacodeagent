@@ -1,0 +1,25 @@
+{
+  "train": {
+    "samples": 2841,
+    "tokens": 26450773,
+    "min": 2980,
+    "p50": 9002,
+    "p95": 15088,
+    "max": 19825,
+    "excluded": []
+  },
+  "validation": {
+    "samples": 214,
+    "tokens": 1786549,
+    "min": 3233,
+    "p50": 8121,
+    "p95": 13976,
+    "max": 15262,
+    "excluded": []
+  },
+  "include_compaction": false,
+  "reasoning_weight": 0.25,
+  "model": "/workspace/harness/training_b/tokenized_w4/tokenizer",
+  "revision": "52f3f65bc7a02d555763bc923bd1d9094898219d",
+  "template_sha256": "ae53464bf3be25802b3a5b37def7fd89667067d7577049b3b2d74c4d8de4c6d4"
+}

@@ -1,0 +1,1 @@
+{"step": 1, "loss": 0.9738829135894775, "gradient_norm": 2.008305788040161, "adapter_delta_max": 1.999987034650985e-05, "seconds": 79.20181990599667, "peak_allocated_gib": 82.48731756210327, "lengths": [19825], "sample_ids": ["facebookresearch__hydra-1487/env_repair_v1/56"]}

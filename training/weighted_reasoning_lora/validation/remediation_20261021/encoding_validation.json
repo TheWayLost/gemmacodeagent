@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "legacy_encoding_identical": {
+    "train": 2951,
+    "validation": 216
+  },
+  "reasoning_weight_ablation_preserves_tokens": true,
+  "seconds": 80.74068808555603
+}

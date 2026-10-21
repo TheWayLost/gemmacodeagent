@@ -9,6 +9,8 @@ from peft import LoraConfig,get_peft_model,PeftModel
 from checkpointing import save_checkpoint,load_optimizer,restore_rng
 from validate_w4 import audit_decoded,audit_adapter
 from base_loading import MODEL_ID,check_source,check_resume,load_base,base_identity,assert_lora_only
+from provenance import build_manifest, check_resume_manifest, save_manifest
+from objectives import task_scales, validate_rows, scalar_loss
 from tracking import add_arguments,Tracker,progress_metrics,finish_active,gather_rank_stats
 
 def weighted_sum(logits,labels,weights):
@@ -28,7 +30,7 @@ def forward_sum(model,row,device):
  return weighted_sum(out.logits,labels,weights),weights.sum()
 
 def main():
- ap=argparse.ArgumentParser();ap.add_argument('--data',required=True);ap.add_argument('--output',required=True);ap.add_argument('--model',default=MODEL_ID);ap.add_argument('--revision',required=True);ap.add_argument('--steps',type=int,default=0);ap.add_argument('--accum',type=int,default=4);ap.add_argument('--lr',type=float,default=2e-5);ap.add_argument('--seed',type=int,default=42);ap.add_argument('--smoke',action='store_true');ap.add_argument('--resume');ap.add_argument('--save-every',type=int,default=50);ap.add_argument('--attention',default='sdpa');add_arguments(ap);args=ap.parse_args()
+ ap=argparse.ArgumentParser();ap.add_argument('--data',required=True);ap.add_argument('--output',required=True);ap.add_argument('--model',default=MODEL_ID);ap.add_argument('--revision',required=True);ap.add_argument('--steps',type=int,default=0);ap.add_argument('--accum',type=int,default=4);ap.add_argument('--lr',type=float,default=2e-5);ap.add_argument('--seed',type=int,default=42);ap.add_argument('--objective',choices=['token_mean','task_mean'],default='token_mean');ap.add_argument('--smoke',action='store_true');ap.add_argument('--resume');ap.add_argument('--save-every',type=int,default=50);ap.add_argument('--attention',default='sdpa');add_arguments(ap);args=ap.parse_args()
  check_source(args.model,args.revision)
  if args.resume:check_resume(args.resume)
  rank=int(os.environ.get('RANK',0));world=int(os.environ.get('WORLD_SIZE',1));local=int(os.environ.get('LOCAL_RANK',0));assert 1<=world<=4
@@ -38,10 +40,14 @@ def main():
  if world>1:dist.init_process_group('nccl')
  torch.manual_seed(args.seed);random.seed(args.seed)
  out=pathlib.Path(args.output);out.mkdir(parents=True,exist_ok=True)
- rows=[json.loads(l) for l in open(args.data)];assert rows
+ rows=[json.loads(l) for l in open(args.data)];assert rows;validate_rows(rows)
  if args.steps==0:args.steps=(len(rows)+world*args.accum-1)//(world*args.accum)
  if args.smoke:
   rows=[max(rows,key=lambda x:len(x['input_ids']))];args.steps=1;args.accum=1
+ scales=task_scales(rows)
+ manifest=build_manifest(args)
+ if args.resume:check_resume_manifest(args.resume,manifest)
+ if rank==0:save_manifest(out,manifest)
  base=load_base(args.model,args.revision,local,args.attention)
  if rank==0:
   audit=audit_decoded(base);(out/'base_audit.json').write_text(json.dumps(audit,indent=2));print(json.dumps(audit),flush=True)
@@ -63,7 +69,7 @@ def main():
  trainable=[p for p in model.parameters() if p.requires_grad];assert trainable
  if rank==0:
   (out/'base_identity.json').write_text(json.dumps(base_identity(),indent=2))
-  model.print_trainable_parameters();(out/'config.json').write_text(json.dumps(vars(args)|{'world_size':world,'trainable_parameters':sum(p.numel() for p in trainable),'loss':'sum(w*CE)/sum(w), prompt=0, reasoning=0.25, action/boundaries=1','gpu':torch.cuda.get_device_name()},indent=2))
+  model.print_trainable_parameters();(out/'config.json').write_text(json.dumps(vars(args)|{'world_size':world,'trainable_parameters':sum(p.numel() for p in trainable),'loss':args.objective,'gpu':torch.cuda.get_device_name()},indent=2))
  optimizer=torch.optim.AdamW(trainable,lr=args.lr,weight_decay=.01)
  start=0
  if args.resume:start=load_optimizer(optimizer,args.resume,world)
@@ -96,24 +102,25 @@ def main():
  for step in range(start,args.steps):
   iteration_started=time.monotonic()
   batch=[take() for _ in range(args.accum)]
-  global_weight=torch.tensor(sum(sum(x['weights'][1:]) for x in batch),device=device)
+  global_weight=torch.tensor(sum(sum(x['weights'][1:]) for x in batch) if args.objective=='token_mean' else len(batch),device=device,dtype=torch.float32)
   if world>1:dist.all_reduce(global_weight)
   optimizer.zero_grad(set_to_none=True);model.train();torch.cuda.reset_peak_memory_stats(device);numerator=torch.zeros((),device=device);before=trainable[1].detach().clone();started=time.monotonic()
   for j,row in enumerate(batch):
    sync=wrapped.no_sync() if world>1 and j+1<len(batch) else contextlib.nullcontext()
    with sync:
     n,w=forward_sum(wrapped,row,device);assert torch.isfinite(n)
-    (n*world/global_weight).backward();numerator+=n.detach()
+    objective_n=scalar_loss(n,w,scales[row['task_id']],args.objective)
+    (objective_n*world/global_weight).backward();numerator+=objective_n.detach()
   norm=torch.nn.utils.clip_grad_norm_(trainable,1.0);assert torch.isfinite(norm) and norm>0
   optimizer.step();changed=(trainable[1].detach()-before).abs().max().item();assert changed>0,'LoRA B matrix did not update'
   if world>1:dist.all_reduce(numerator)
   metric={'step':step+1,'loss':(numerator/global_weight).item(),'gradient_norm':norm.item(),'adapter_delta_max':changed,'seconds':time.monotonic()-started,'peak_allocated_gib':torch.cuda.max_memory_allocated(device)/2**30,'lengths':[len(x['input_ids']) for x in batch],'sample_ids':[x['sample_id'] for x in batch]};log.write(json.dumps(metric)+'\n')
   if tracking_enabled:
-   local_stats=torch.tensor([sum(len(x['input_ids']) for x in batch),sum(sum(w>0 for w in x['weights']) for x in batch),sum(x['weights'].count(.25) for x in batch),sum(x['weights'].count(1.) for x in batch),metric['peak_allocated_gib'],torch.cuda.max_memory_reserved(device)/2**30,metric['seconds'],max(metric['lengths'])],dtype=torch.float64,device=device)
+   local_stats=torch.tensor([sum(len(x['input_ids']) for x in batch),sum(sum(w>0 for w in x['weights']) for x in batch),sum(x.get('reasoning_tokens',x['weights'].count(.25)) if x.get('reasoning_weight',.25)>0 else 0 for x in batch),sum(x.get('action_tokens',x['weights'].count(1.)) for x in batch),metric['peak_allocated_gib'],torch.cuda.max_memory_reserved(device)/2**30,metric['seconds'],max(metric['lengths'])],dtype=torch.float64,device=device)
    stats=gather_rank_stats(local_stats,world)
    if rank==0:
     tracked=progress_metrics(step+1,args.steps,world,args.accum,len(rows),time.monotonic()-iteration_started,time.monotonic()-t0,step+1-start,[r.tolist() for r in stats])
-    tracked.update({'train/loss':metric['loss'],'train/gradient_norm':metric['gradient_norm'],'train/adapter_delta_max':changed,'train/learning_rate':optimizer.param_groups[0]['lr'],'train/supervised_weight_sum':global_weight.item()})
+    tracked.update({'train/loss':metric['loss'],'train/gradient_norm':metric['gradient_norm'],'train/adapter_delta_max':changed,'train/learning_rate':optimizer.param_groups[0]['lr'],'train/objective_denominator':global_weight.item()})
     tracker.log(tracked)
   if rank==0:print(json.dumps(metric),flush=True)
   if (step+1)%args.save_every==0 or step+1==args.steps:save(step+1)

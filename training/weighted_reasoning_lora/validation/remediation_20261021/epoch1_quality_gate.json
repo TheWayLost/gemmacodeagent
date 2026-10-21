@@ -1,0 +1,32 @@
+{
+  "passed": false,
+  "policy": "no solve-count regression and bounded mean elapsed time on the complete locked development set",
+  "not_a_generalization_claim": true,
+  "arms": {
+    "base": {
+      "solved": 11,
+      "count": 20,
+      "mean_seconds": 406.0369966268539,
+      "median_seconds": 323.12635350227356,
+      "session_timeouts": 1
+    },
+    "lora": {
+      "solved": 5,
+      "count": 20,
+      "mean_seconds": 715.3915268063545,
+      "median_seconds": 906.0838321447372,
+      "session_timeouts": 9
+    }
+  },
+  "candidate_only": [],
+  "baseline_only": [
+    "requests_7205",
+    "fastapi_9425",
+    "fastapi_14873",
+    "fastapi_9753",
+    "rich_4079",
+    "requests_6644"
+  ],
+  "mean_time_ratio": 1.7618875441141042,
+  "max_time_ratio": 1.25
+}

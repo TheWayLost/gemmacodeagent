@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "train": {
+    "rows": 2841,
+    "tasks": 180,
+    "compaction_targets": 0,
+    "history_and_target_unchanged": true,
+    "tokenized_rows": 2841
+  },
+  "validation": {
+    "rows": 214,
+    "tasks": 20,
+    "compaction_targets": 0,
+    "history_and_target_unchanged": true,
+    "tokenized_rows": 214
+  },
+  "gpu_smoke_sample_preserved_exactly": "facebookresearch__hydra-1487/env_repair_v1/56"
+}

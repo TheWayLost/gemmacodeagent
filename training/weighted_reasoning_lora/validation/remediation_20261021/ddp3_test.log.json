@@ -1,0 +1,5 @@
+{
+  "passed": true,
+  "world_size": 3,
+  "gradient_max_abs_error": 1.1920928955078125e-07
+}
