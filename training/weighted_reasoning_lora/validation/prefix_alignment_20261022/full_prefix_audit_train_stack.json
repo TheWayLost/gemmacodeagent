@@ -1,0 +1,21 @@
+{
+  "train": {
+    "samples": 2841,
+    "inserted_empty_thought": 755,
+    "native_prefix_mismatch_repaired": 759,
+    "submit_targets_retained": 177,
+    "prefix_errors": [],
+    "excluded": 0
+  },
+  "validation": {
+    "samples": 214,
+    "inserted_empty_thought": 70,
+    "native_prefix_mismatch_repaired": 71,
+    "submit_targets_retained": 20,
+    "prefix_errors": [],
+    "excluded": 0
+  },
+  "passed": true,
+  "serialization_version": "gemma4-deployment-prefix-v2",
+  "seconds": 90.54705834388733
+}

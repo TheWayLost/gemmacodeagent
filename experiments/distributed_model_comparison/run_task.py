@@ -10,7 +10,10 @@ os.environ.setdefault("OTEL_SDK_DISABLED","true")
 os.environ.setdefault("LITELLM_LOCAL_MODEL_COST_MAP","True")
 os.environ.setdefault("LITELLM_TELEMETRY","False")
 os.environ.setdefault("OPENAI_API_KEY","EMPTY")
+import sys
+sys.path.append(str(Path(__file__).resolve().parents[2]/'src'))
 import yaml
+from budget_contract import materialize_submission
 from adk_submission import ModelRegistry, discover_adapters
 from swegemma.config import EvalConfig, build_submission_limits
 from swegemma.models import load_tasks
@@ -36,6 +39,8 @@ async def main():
         assert len(tasks)==len(wanted),"Unknown/duplicate task IDs"
     submission=ROOT/"submissions"/args.submission
     raw=yaml.safe_load((submission/"eval_config.yaml").read_text()).get("evaluation",{})
+    source_submission=submission
+    submission,budget_contract=materialize_submission(submission,out/'effective_submission',raw)
     models=ModelRegistry()
     if args.mode=="agent":
         import litellm
@@ -90,16 +95,16 @@ async def main():
         for line in resultfile.read_text().splitlines():
             r=json.loads(line);done.add(r.get("task_id",r.get("instance_id")))
     manifest={"mode":args.mode,"ids":[t.instance_id for t in tasks],"image":args.image,
-              "submission":args.submission,"started_unix":time.time(),"verification_timeout_seconds":300,
+              "submission":args.submission,"budget_contract":budget_contract,"started_unix":time.time(),"verification_timeout_seconds":300,
               "wheel_fingerprint":wheel_key,"wheels_dir":str(cfg.wheels_dir),
-              "submission_files":{str(f.relative_to(submission)):hashlib.sha256(f.read_bytes()).hexdigest() for f in sorted(submission.rglob("*")) if f.is_file()},
+              "submission_files":{str(f.relative_to(source_submission)):hashlib.sha256(f.read_bytes()).hexdigest() for f in sorted(source_submission.rglob("*")) if f.is_file()},
               "tasks_sha256":hashlib.sha256(cfg.tasks_path.read_bytes()).hexdigest(),
               "compaction_threshold":14336,"execution_concurrency":int(os.environ.get("ADP_CONCURRENCY","1")),"hardware":"AutoDL RTX PRO 6000 Blackwell 96GB TP1; AutoDL local chroot from calibrated Docker rootfs; separate calibration required; scorer TP4 L4 timing not identical"}
     old_manifest=out/"manifest.json"
     if old_manifest.exists() and done:
         old=json.loads(old_manifest.read_text())
-        for key in ("mode","ids","image","submission","wheel_fingerprint","submission_files","tasks_sha256"):
-            if key in old and old[key]!=manifest[key]:
+        for key in ("mode","ids","image","submission","wheel_fingerprint","submission_files","tasks_sha256","budget_contract"):
+            if old.get(key)!=manifest[key]:
                 raise RuntimeError(f"Refusing to combine different experiment settings: {key}")
     (out/"manifest.json").write_text(json.dumps(manifest,indent=2))
     try:

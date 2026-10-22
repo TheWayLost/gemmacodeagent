@@ -1,10 +1,11 @@
 {
+  "source": "v5_6000; budget prompt aligned 2026-10-22",
+  "validation": "CPU contract checks; no new Kaggle score",
   "files": {
     "agent.yaml": "680799291cc7d156d06fb7bfb5577f683ccc0d555b00e8ddb662d577f9bfa5e4",
-    "eval_config.yaml": "916cf6cb34a6cc3de39837fa72cac681599b9ac2a3ee0b893adadfd36474c531",
     "configs/sampling.yaml": "55950bc2d3549ae11e6dedc47d80484c97f3ceb1ec69ffc8d484e3bfb99d8ffa",
-    "prompts/system.md": "475cc9b7fcc0dc295532f5cb5e1928f26a491f501837ad08b1c79bdbe1a3eaa4"
+    "eval_config.yaml": "6e6ec51338aaa5ec32344ca6af241378a008b4ce917ebfb7358898e4dc93406b",
+    "prompts/system.md": "4c26111795b46b1fe2b1e8913788f5a46f831fc50b5f525772879d2ca81af9f6"
   },
-  "zip_sha256": "bc5e0af2760813c5359fb3c795adbd7d332121e01241db52a8c9ac14527538fa",
-  "source": "r4_budgetfit_think6000; exact tested bytes"
+  "zip_sha256": "cdfd6d5de174c784d05b3a7cef2f67fbbdb675cbe34780f53c1268447dad8b50"
 }

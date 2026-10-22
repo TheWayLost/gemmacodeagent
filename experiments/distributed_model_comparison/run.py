@@ -16,7 +16,8 @@ cat={x['task_id']:x for x in json.loads((S/'environment_catalog.json').read_text
 old=json.loads((S/'calibrated_profiles.json').read_text())
 sub=P/'submissions/mm15_6000'
 if not sub.exists():shutil.copytree(S/'submission',sub)
-sourcehash={str(p.relative_to(S)):hashlib.sha256(p.read_bytes()).hexdigest() for p in S.rglob('*') if p.is_file() and p.suffix in ['.py','.json','.yaml'] and 'reports' not in p.parts and p.name not in ['pilot_results.json','validated_sources.json']}
+sourcehash={str(p.relative_to(S)):hashlib.sha256(p.read_bytes()).hexdigest() for p in S.rglob('*') if p.is_file() and p.suffix in ['.py','.json','.yaml','.md'] and 'reports' not in p.parts and p.name not in ['pilot_results.json','validated_sources.json']}
+sourcehash['../../src/budget_contract.py']=hashlib.sha256((S.parents[1]/'src/budget_contract.py').read_bytes()).hexdigest()
 manifest={'worker_index':args.worker_index,'workers':args.workers,'scope':args.scope,'tasks':ids,'arms':args.arms,'total':len(ids)*len(args.arms),'max_concurrency':args.concurrency,'minutes':15,'thinking_budget':6000,'tools':56,'turns':160,'output_tokens':8192,'source_hashes':sourcehash,'dtype':'FP8 weights; BF16 activations/KV as checkpoint specifies','speculative_decoding':False,'started':time.time(),'failure_rule':'stop new tasks on infrastructure error; preserve all outcomes; no selective retries','milestones':[int((len(ids)*len(args.arms)*x+3)//4) for x in [1,2,3,4]]}
 mp=O/(args.scope+'_protocol.json')
 if mp.exists():

@@ -1,0 +1,1 @@
+{"passed": true, "native_template": true, "prompt_masked": true, "reasoning_weight": 0.25, "action_weight": 1, "overlength_rejected": true, "malformed_arguments_rejected": true}

@@ -28,5 +28,8 @@ python test_quality_gate.py
 python test_provenance.py
 python test_weighting.py
 python test_template.py
+python test_serialization.py
+python test_streamed_ce.py
+python verify_prefix_alignment.py --data "$ROOT/curated" --tokens "$ROOT/tokenized" --tokenizer "$ROOT/tokenized/tokenizer" --output "$ROOT/prefix_alignment.json"
 python test_w4_contract.py
 printf 'Ready. Run the single-card smoke test in README.md before a short checkpoint-gated experiment.\n'

@@ -1,3 +1,5 @@
+> **2026-10-22 budget fix:** system instructions now match56 calls/15 minutes. Use the complete repository (imports `src/budget_contract.py`) and a fresh run/output directory; historical results used stale budget text.
+
 # Seven models / all 129 tasks / 3–4 PRO 6000 servers
 
 Default **7 × 129 = 903 evaluations**. Each server uses its own 96 GiB PRO 6000, runs all models sequentially on a disjoint task shard, with up to 16 rolling concurrent tasks. No cross-server inference.

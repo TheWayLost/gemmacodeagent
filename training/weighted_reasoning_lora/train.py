@@ -2,7 +2,6 @@
 import argparse,contextlib,json,os,pathlib,random,time
 import torch
 import torch.distributed as dist
-import torch.nn.functional as F
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data import DataLoader,DistributedSampler
 from peft import LoraConfig,get_peft_model,PeftModel
@@ -10,15 +9,11 @@ from checkpointing import save_checkpoint,load_optimizer,restore_rng
 from validate_w4 import audit_decoded,audit_adapter
 from base_loading import MODEL_ID,check_source,check_resume,load_base,base_identity,assert_lora_only
 from provenance import build_manifest, check_resume_manifest, save_manifest
+from serialization import validate_serialization
 from objectives import task_scales, validate_rows, scalar_loss
 from tracking import add_arguments,Tracker,progress_metrics,finish_active,gather_rank_stats
 
-def weighted_sum(logits,labels,weights):
- total=logits.new_zeros((),dtype=torch.float32)
- for i in range(0,labels.numel(),128):
-  ce=F.cross_entropy(logits[0,i:i+128].float(),labels[i:i+128],reduction='none')
-  total=total+(ce*weights[i:i+128]).sum()
- return total
+from weighted_lora_streamed_ce import weighted_sum
 
 def forward_sum(model,row,device):
  ids=torch.tensor(row['input_ids'],device=device,dtype=torch.long).unsqueeze(0)
@@ -31,6 +26,8 @@ def forward_sum(model,row,device):
 
 def main():
  ap=argparse.ArgumentParser();ap.add_argument('--data',required=True);ap.add_argument('--output',required=True);ap.add_argument('--model',default=MODEL_ID);ap.add_argument('--revision',required=True);ap.add_argument('--steps',type=int,default=0);ap.add_argument('--accum',type=int,default=4);ap.add_argument('--lr',type=float,default=2e-5);ap.add_argument('--seed',type=int,default=42);ap.add_argument('--objective',choices=['token_mean','task_mean'],default='token_mean');ap.add_argument('--smoke',action='store_true');ap.add_argument('--resume');ap.add_argument('--save-every',type=int,default=50);ap.add_argument('--attention',default='sdpa');add_arguments(ap);args=ap.parse_args()
+ rows=[json.loads(l) for l in open(args.data)];assert rows;validate_rows(rows)
+ for row in rows:validate_serialization(row)
  check_source(args.model,args.revision)
  if args.resume:check_resume(args.resume)
  rank=int(os.environ.get('RANK',0));world=int(os.environ.get('WORLD_SIZE',1));local=int(os.environ.get('LOCAL_RANK',0));assert 1<=world<=4
@@ -40,7 +37,7 @@ def main():
  if world>1:dist.init_process_group('nccl')
  torch.manual_seed(args.seed);random.seed(args.seed)
  out=pathlib.Path(args.output);out.mkdir(parents=True,exist_ok=True)
- rows=[json.loads(l) for l in open(args.data)];assert rows;validate_rows(rows)
+
  if args.steps==0:args.steps=(len(rows)+world*args.accum-1)//(world*args.accum)
  if args.smoke:
   rows=[max(rows,key=lambda x:len(x['input_ids']))];args.steps=1;args.accum=1

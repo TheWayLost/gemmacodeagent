@@ -1,6 +1,8 @@
 # Budget-Fit v5 + thinking_budget 6000
 
-Kaggle 提交包：[artifacts/submission.zip](artifacts/submission.zip)。ZIP 根目录四个文 `r4_budgetfit_think6000` 字节一致，校验见 [manifest](artifacts/manifest.json)。无微调；相比 v5，仅将 thinking_budget 从 4096 改为 6000。
+Current submission: [artifacts/submission.zip](artifacts/submission.zip), v5 +6000 thinking,56 tool calls,15 minutes,160 turns. Budget text matches runtime configuration. Historical8min package: [artifacts/submission_legacy_8min.zip](artifacts/submission_legacy_8min.zip). This updated package has CPU contract checks, not a new Kaggle score.
+
+Training update: [deployment-prefix alignment guide](training/weighted_reasoning_lora/PREFIX_ALIGNMENT.md). Rebuild token caches before training.
 
 **八路是外部评测调度，不打进 submission，也不能强制 Kaggle 评分器八路运行。** 每台 PRO 6000 独立加载模型、本地推理，无跨机器 SSH 推理隧道。
 
@@ -78,7 +80,7 @@ tail -f logs/benchmark.log
 
 55 题分为 19/18/18。四台时所有命令统一 `--shards 4`，分别 `--shard 0,1,2,3`，分为 14/14/14/13。不能混用 shards 或重复 shard。每机只 vLLM 服务。
 
-20 题配对比较两个预算：
+20 题比较两个历史配置（当前 v5_6000 为56次/15分钟，v5_4096 为28次/8分钟；不是仅 thinking budget 不同的对照）：
 
 ```bash
 envs/bootstrap/bin/python scripts/prepare_data.py --cohort paired20 --shards 3 --shard "$SHARD"

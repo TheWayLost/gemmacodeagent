@@ -1,0 +1,6 @@
+{
+  "transformers": "5.20.2",
+  "tokenizers": "0.23.3",
+  "device": "CPU",
+  "gpu_training_tested": false
+}

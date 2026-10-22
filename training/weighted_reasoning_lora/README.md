@@ -1,3 +1,5 @@
+> **2026-10-22 required update:** read [PREFIX_ALIGNMENT.md](PREFIX_ALIGNMENT.md). Rebuild token caches and start a new run; old caches/resume are rejected. CPU validation is recorded separately from earlier GPU smoke results.
+
 > **2026-10-21 regression audit:** the epoch-1 adapter solved 5/20 versus the base 11/20 on our paired development evaluation. Read [REMEDIATION.md](REMEDIATION.md) before retraining: it includes audited data counts, conservative curation, task-balanced objectives, short-run checkpoint gates, and 2-4 GPU commands. These changes have not yet demonstrated better repair accuracy.
 
 # Version B: weighted-reasoning LoRA for repository-repair agents

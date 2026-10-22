@@ -1,7 +1,7 @@
-import json,pathlib
+import json,pathlib,os
 from transformers import AutoTokenizer
 from prepare import encode
-lock=json.loads(pathlib.Path(__file__).with_name('revisions.json').read_text())['model'];t=AutoTokenizer.from_pretrained(lock['repo_id'],revision=lock['revision'])
+lock=json.loads(pathlib.Path(__file__).with_name('revisions.json').read_text())['model'];t=AutoTokenizer.from_pretrained(os.environ.get('TOKENIZER',lock['repo_id']),revision=lock['revision'])
 tools=[{'type':'function','function':{'name':'run_command','description':'Run a command','parameters':{'type':'object','properties':{'command':{'type':'string'}},'required':['command']}}}]
 messages=[{'role':'system','content':'Repair the repository.'},{'role':'user','content':'Fix the parser.'},{'role':'assistant','content':'','tool_calls':[{'id':'a','type':'function','function':{'name':'run_command','arguments':'{"command":"pwd"}'}}]},{'role':'tool','tool_call_id':'a','content':'/workspace'}]
 row={'sample_id':'unit/0','task_id':'unit','messages':messages,'tools':tools,'target':{'role':'assistant','reasoning_content':'Inspect the parser first.','content':'','tool_calls':[{'id':'b','type':'function','function':{'name':'run_command','arguments':'{"command":"cat parser.py"}'}}]}}

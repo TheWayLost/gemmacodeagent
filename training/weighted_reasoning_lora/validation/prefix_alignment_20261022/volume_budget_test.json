@@ -1,0 +1,7 @@
+{
+  "version": "evaluation-budget-v2",
+  "max_tool_calls": 56,
+  "max_time_minutes": 15,
+  "source_prompt_sha256": "4c26111795b46b1fe2b1e8913788f5a46f831fc50b5f525772879d2ca81af9f6",
+  "effective_prompt_sha256": "4c26111795b46b1fe2b1e8913788f5a46f831fc50b5f525772879d2ca81af9f6"
+}

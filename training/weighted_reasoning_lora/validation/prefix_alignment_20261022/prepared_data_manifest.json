@@ -1,0 +1,13 @@
+{
+  "serialization_version": "gemma4-deployment-prefix-v2",
+  "splits": {
+    "train": {
+      "sha256": "715bb697a551ac3d5bd1f9fd64c4fa304d4dddbf9129ad64f758ee39b7c175f1",
+      "rows": 2841
+    },
+    "validation": {
+      "sha256": "3bcdb419172693cefd7f1235640e0c4ecf001b1daf979452ae6a24316cadb097",
+      "rows": 214
+    }
+  }
+}

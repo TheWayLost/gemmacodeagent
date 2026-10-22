@@ -1,3 +1,5 @@
+> **Superseded encoding:** the legacy reproduction statements below describe the2026-10-21 revision. The current encoder intentionally changes those tokens to match the generation prefix. Follow [PREFIX_ALIGNMENT.md](PREFIX_ALIGNMENT.md) before training.
+
 # Regression audit and controlled retraining
 
 The published epoch-1 adapter is **not recommended for deployment**: on the
