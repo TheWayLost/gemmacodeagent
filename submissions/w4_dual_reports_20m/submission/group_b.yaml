@@ -1,0 +1,10 @@
+name: run_B_group
+model: gemma-4-31b-it-qat-w4a16-ct
+instruction: Call segments_B EXACTLY ONCE with request="Run your own candidate group."
+  Do not solve, analyze or write a report. End after the tool returns.
+include_contents: none
+tools:
+- agent_tool:
+    config_path: loop_b.yaml
+    skip_summarization: true
+generate_content_config: !include configs/dispatch.yaml

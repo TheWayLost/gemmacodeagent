@@ -1,0 +1,31 @@
+{
+  "zip_sha256": "10e407a8538f1455d000550cf361784b0b413526cfd39ba0d5083c220bd0cbfd",
+  "zip_bytes": 20310,
+  "files": {
+    "a.yaml": "0137242224f5da93b18d0fb34675a35901370481c6bfde876c35e94d9f33bb19",
+    "agent.yaml": "e898b0dea8c1f9432af10677ea95d8f3c35dea03c189b5971a03af8498b6a3c7",
+    "b.yaml": "76d0555ad6ff8c51d5c1d6609732ebe4f3529290b00211f100c0fac5f09aa2f1",
+    "configs/a.yaml": "6fb0fb73c66037fab1eb6aa9bf5c396a2427af04954b1f76143017ecf98cf7fa",
+    "configs/b.yaml": "53f080c0e0eb95e4a9f005ff03a00b16060372ffbfe669dcaab83add67264bae",
+    "configs/dispatch.yaml": "110a6d413118c639be46cb7a5ce73d373ba40be1cfbabf3c6fc47f913d263c12",
+    "configs/judge.yaml": "6fb0fb73c66037fab1eb6aa9bf5c396a2427af04954b1f76143017ecf98cf7fa",
+    "eval_config.yaml": "2bca0e047bfa2e64c6f608c90be79cb1da964e6706345ce72ba0ee4abb357fcf",
+    "group_a.yaml": "5ef003f6a84280ccdc4ce834c5f98131c26a451613a1d340f6118d5e3d382d57",
+    "group_b.yaml": "b89fc76b6419e583ed9fccab7a608a9688706dfef602146bce5e353791fe515d",
+    "judge.yaml": "5cfb50937a98e8132c0c176521579c071110c01706ce393a74e8c45ad317011c",
+    "launch_a.yaml": "b6fa93cdc1ac3afe323c044f723e4f67861377bd07ee4a113ceb1b1e3300d40e",
+    "launch_b.yaml": "7d15ba754196e2e8c4b333b00eb86d2426e237413ffa1dec9ca251dfab1883c2",
+    "loop_a.yaml": "bcf2e39f163a7511aff7a1029807e841733f08493a68f77fabaa5b279ff3261e",
+    "loop_b.yaml": "b88d8bddd0a54a8b514366fca8d53052b2656b0be927d55471634fccbc119df2",
+    "parallel.yaml": "66774fa364ec6b261723d07ea5310324170858a7e3d315a8a5ae74c44a77497c",
+    "prompts/a.md": "e233a1a910a5179c26c2034dc4cff6976a605e959b99f4ffa67cb3498e5a0b7a",
+    "prompts/b.md": "fd754b4c3fe3603bfed472b0e584dafdad52dded8ef02b48be45ec874c650148",
+    "prompts/judge.md": "3967013600afe71c6404eae1cea05a04a63a03026c7777abbc0a2154e18304d3",
+    "skills/candidate-a/SKILL.md": "5ad4fe8dc01ca3a3f62eb241e84f52f9b9e9552cfd9eaee7159edd9a60c589bb",
+    "skills/candidate-a/scripts/control.py": "0b270f4717f06e41d659c6b8eaebac63f6536f3afd95503fc384657eaf882252",
+    "skills/candidate-b/SKILL.md": "dc5dcfb79217a0b66394eb39630efddf74ccecd5612ea33d2bbda8aa3817487f",
+    "skills/candidate-b/scripts/control.py": "6623347e00ae4fcfc2f3168987fb401f1c123ea5a82030969181975e5128c046",
+    "skills/patch-judge/SKILL.md": "3eb170c1b49b69f7999b30046b4f314345dc517c0c34876af8ffe305074d303f",
+    "skills/patch-judge/scripts/control.py": "86efad65eb493181582fcaa8fcf8895fe565bfcd8ef96502e4f69e0992524a58"
+  }
+}

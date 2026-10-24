@@ -1,0 +1,5 @@
+agent_class: ParallelAgent
+name: independent_candidate_groups
+sub_agents:
+- config_path: group_a.yaml
+- config_path: group_b.yaml

@@ -1,0 +1,9 @@
+name: solver_B
+model: gemma-4-31b-it-qat-w4a16-ct
+instruction: !include prompts/b.md
+include_contents: none
+disallow_transfer_to_parent: true
+disallow_transfer_to_peers: true
+skills:
+  - skills/candidate-b
+generate_content_config: !include configs/b.yaml

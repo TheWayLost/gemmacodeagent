@@ -1,0 +1,19 @@
+{
+  "compiled": true,
+  "solvers_in_private_AgentTool_sessions": true,
+  "outer_parallel_receives_only_group_acknowledgements": true,
+  "segments_per_solver": 7,
+  "max_commands_per_segment": 8,
+  "models": [
+    "openai/gemma-4-31b-it-qat-w4a16-ct",
+    "openai/gemma-4-31b-it-qat-w4a16-ct",
+    "openai/gemma-4-31b-it-qat-w4a16-ct"
+  ],
+  "thinking_budgets": [
+    6000,
+    6000,
+    6000
+  ],
+  "launcher_thinking_budget": 0,
+  "max_time_minutes": 20
+}

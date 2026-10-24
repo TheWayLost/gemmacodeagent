@@ -1,5 +1,7 @@
 # Budget-Fit v5 + thinking_budget 6000
 
+New optional submission: [W4 two candidates + solver-authored reports + verifier, 20 minutes](submissions/w4_dual_reports_20m/README.md). This does not replace the existing single-agent artifact.
+
 Current submission: [artifacts/submission.zip](artifacts/submission.zip), v5 +6000 thinking,56 tool calls,15 minutes,160 turns. Budget text matches runtime configuration. Historical8min package: [artifacts/submission_legacy_8min.zip](artifacts/submission_legacy_8min.zip). This updated package has CPU contract checks, not a new Kaggle score.
 
 Training update: [deployment-prefix alignment guide](training/weighted_reasoning_lora/PREFIX_ALIGNMENT.md). Rebuild token caches before training.

@@ -1,0 +1,10 @@
+name: patch_verifier
+model: gemma-4-31b-it-qat-w4a16-ct
+instruction: !include prompts/judge.md
+include_contents: none
+skills:
+  - skills/patch-judge
+tools:
+  - submit_patch
+  - get_status
+generate_content_config: !include configs/judge.yaml

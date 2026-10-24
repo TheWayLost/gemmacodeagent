@@ -1,0 +1,42 @@
+{
+  "status": "NOT_ACCEPTED_FOR_SUBMISSION",
+  "run": "dual-parallel-isolated-fastapi",
+  "task_id": "fastapi_12942",
+  "resolved": false,
+  "wall_seconds": 747.1221379459894,
+  "recorded_requests": 131,
+  "maximum_successful_prompt_tokens": 24458,
+  "failure": "ContextWindowExceededError: input at least 24577 + requested output 8192 > 32768. Segment command caps do not bound accumulated reasoning tokens. Both candidates did not finish; final-report requirement not verified.",
+  "candidates": {
+    "A": {
+      "label": "A",
+      "started": 201674.654226222,
+      "deadline": 202389.668265637,
+      "calls": 29,
+      "finished": false,
+      "patch_sha256": "7f905c3f0e8b98265cb0f1cd86e0dd57412bd9cd275ba9bb75225a4555ef3177",
+      "segment": 4,
+      "segment_start_calls": 21,
+      "patch_bytes": 3239
+    },
+    "B": {
+      "label": "B",
+      "started": 201670.126870421,
+      "deadline": 202389.668265637,
+      "calls": 16,
+      "finished": false,
+      "patch_sha256": "fc824fc157832ee5aa243ce916ae4aa2bc523a21ec1564cd9049d2b6ddedd4e3",
+      "segment": 2,
+      "segment_start_calls": 8,
+      "patch_bytes": 1484
+    }
+  },
+  "selection": {
+    "choice": "A",
+    "patch_sha256": "7f905c3f0e8b98265cb0f1cd86e0dd57412bd9cd275ba9bb75225a4555ef3177",
+    "selected_by": "W4_verifier"
+  },
+  "unit_tests_passed": 12,
+  "compiler_passed": true,
+  "scope": "Development smoke test only; not a benchmark estimate."
+}

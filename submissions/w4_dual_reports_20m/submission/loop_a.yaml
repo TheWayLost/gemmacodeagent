@@ -1,0 +1,5 @@
+agent_class: LoopAgent
+name: segments_A
+max_iterations: 7
+sub_agents:
+- config_path: launch_a.yaml

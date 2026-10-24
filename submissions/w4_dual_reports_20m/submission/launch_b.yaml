@@ -1,0 +1,12 @@
+name: launch_B
+model: gemma-4-31b-it-qat-w4a16-ct
+instruction: Call the solver_B tool EXACTLY ONCE, with request="Continue your own
+  candidate using begin and your own saved report." Do not pass another agent message
+  or any solution. Do not solve the issue, summarize, or write a report yourself.
+  After the tool returns, end this invocation.
+include_contents: none
+tools:
+- agent_tool:
+    config_path: b.yaml
+    skip_summarization: true
+generate_content_config: !include configs/dispatch.yaml

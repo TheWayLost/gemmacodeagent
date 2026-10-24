@@ -1,0 +1,6 @@
+temperature: 0
+seed: 42
+max_output_tokens: 512
+thinking_config:
+  thinking_budget: 0
+  include_thoughts: false

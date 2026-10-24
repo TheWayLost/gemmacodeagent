@@ -1,0 +1,17 @@
+{
+  "passed": [
+    "fallback_and_protected_test_filter",
+    "both_candidates_shared_12_minute_deadline",
+    "B_clean_baseline_after_A_fallback",
+    "exact_report_preservation",
+    "finished_candidate_frozen",
+    "command_deadline_kills_before_late_edit",
+    "report_allowed_after_operation_timeout",
+    "selection_exact_and_removes_A_only_new_file",
+    "selection_can_switch_back",
+    "lossless_report_pagination",
+    "segment_cap_and_exact_own_continuation",
+    "B_continuation_store_excludes_A_report"
+  ],
+  "count": 12
+}

@@ -1,0 +1,5 @@
+agent_class: SequentialAgent
+name: dual_w4_reports
+sub_agents:
+- config_path: parallel.yaml
+- config_path: judge.yaml
